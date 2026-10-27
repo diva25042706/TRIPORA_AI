@@ -207,10 +207,10 @@ export const LandingPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Floating Stat Card */}
-              <div className="absolute -bottom-6 -left-6 bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-[#E7E5DF] shadow-xl text-left hidden sm:flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-800">
-                  <CheckCircle2 className="w-5 h-5" />
+              {/* Floating Stat Card: Positioned at top-left on desktop and below on mobile to prevent overlapping text at bottom */}
+              <div className="sm:absolute sm:-top-5 sm:-left-5 bg-white/95 backdrop-blur-md p-3.5 sm:p-4 rounded-2xl border border-[#E7E5DF] shadow-xl text-left flex items-center gap-3 z-10 mt-4 sm:mt-0 transition-transform hover:scale-105">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-800 shrink-0">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                 </div>
                 <div>
                   <span className="text-xs font-bold text-[#0F1E28] block">
