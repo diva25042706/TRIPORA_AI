@@ -89,6 +89,13 @@ export interface TransportOption {
   arrival_time?: string | null;
   recommendation_reason?: string;
   warnings?: string[];
+  booking_url?: string | null;
+  live_availability_status?: string | null;
+  train_number?: string | null;
+  train_name?: string | null;
+  flight_operator?: string | null;
+  flight_number?: string | null;
+  is_live_data?: boolean;
 }
 
 export interface HotelOption {

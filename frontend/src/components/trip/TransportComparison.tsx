@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TransportOption } from '../../types';
-import { Plane, Train, Bus, Car, CheckCircle2, Clock, MapPin, AlertCircle, Info, ShieldCheck, ArrowRightLeft } from 'lucide-react';
+import { Plane, Train, Bus, Car, CheckCircle2, Clock, MapPin, AlertCircle, Info, ShieldCheck, ArrowRightLeft, ExternalLink, Calendar, Ticket } from 'lucide-react';
 
 interface TransportComparisonProps {
   transports: TransportOption[];
@@ -76,6 +76,19 @@ export const TransportComparison: React.FC<TransportComparisonProps> = ({ transp
         </div>
       </div>
 
+      {/* Disqualified Flight Advisory Banner when 0 flights are verified for destination */}
+      {flightCount === 0 && (
+        <div className="p-3.5 bg-amber-50/80 border border-amber-200/90 rounded-2xl flex items-start gap-3 text-xs text-amber-950 shadow-sm text-left">
+          <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+          <div className="space-y-0.5">
+            <span className="font-bold text-amber-900">No Commercial Passenger Airport Serving Destination</span>
+            <p className="text-[11px] text-amber-800 leading-relaxed">
+              Commercial scheduled flights are disqualified because the destination has no commercial airport (e.g. Tiruvannamalai). High-safety Southern Railway services, express buses, and national highway road transport are verified and recommended below.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Controls: Mode Filter Chips & Sort Selector */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
         <div className="flex flex-wrap gap-1.5">
@@ -122,12 +135,12 @@ export const TransportComparison: React.FC<TransportComparisonProps> = ({ transp
           </div>
           <h4 className="text-sm font-bold text-[#0F1E28]">
             {filterMode === 'flight'
-              ? 'No Commercial Flights Verified on this Route'
+              ? 'No Commercial Passenger Flights on this Route'
               : 'No verified options matching this filter'}
           </h4>
           <p className="text-xs text-[#5A6D7C] max-w-md mx-auto leading-relaxed">
             {filterMode === 'flight'
-              ? 'Commercial scheduled passenger flights require certified active commercial airports at both origin and destination. When an airport does not exist or distance is regional (under 200 km), direct flights are disqualified to prevent hallucinated bookings.'
+              ? 'Only 6 certified commercial passenger airports operate in Tamil Nadu (Chennai MAA, Coimbatore CJB, Madurai IXM, Tiruchirappalli TRZ, Salem SXV, Thoothukudi TCR). Direct flights to destinations without commercial airports are strictly disqualified to prevent hallucinated bookings.'
               : 'Try selecting "All Eligible" above to see the active transportation modes evaluated for this trip.'}
           </p>
           <button
@@ -183,12 +196,52 @@ export const TransportComparison: React.FC<TransportComparisonProps> = ({ transp
                 </div>
               </div>
 
+              {/* Verified Service Specific Badges: Train Name/Number or Flight Operator */}
+              {(t.train_number || t.train_name || t.flight_operator || t.flight_number) && (
+                <div className="mb-2.5 px-3 py-1.5 rounded-xl bg-emerald-50/70 border border-emerald-200/80 text-emerald-950 text-xs flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 font-bold truncate">
+                    <Ticket className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+                    <span className="truncate">
+                      {t.train_name ? `${t.train_name} ${t.train_number ? `(#${t.train_number})` : ''}` : ''}
+                      {t.flight_operator ? `${t.flight_operator} ${t.flight_number ? `(${t.flight_number})` : ''}` : ''}
+                    </span>
+                  </div>
+                  {t.departure_time && (
+                    <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/70 px-2 py-0.5 rounded-md shrink-0">
+                      Dep: {t.departure_time.split(' ')[0]}
+                    </span>
+                  )}
+                </div>
+              )}
+
               {/* Station / Terminal / Airport Breakdown when available */}
               {(t.origin_station_or_airport || t.destination_station_or_airport) && (
                 <div className="mb-3 px-3 py-2 bg-[#FAF9F5] rounded-xl border border-[#E7E5DF] text-[11px] text-[#475569] flex items-center justify-between gap-2">
                   <span className="font-semibold truncate">{t.origin_station_or_airport || t.origin}</span>
                   <ArrowRightLeft className="w-3.5 h-3.5 text-[#10B981] shrink-0" />
                   <span className="font-semibold truncate text-right">{t.destination_station_or_airport || t.destination}</span>
+                </div>
+              )}
+
+              {/* Verified Schedule & Live Status Row */}
+              {(t.departure_time || t.live_availability_status) && (
+                <div className="mb-3 px-3 py-2 bg-slate-50/80 rounded-xl border border-slate-200 text-[11px] text-slate-700 space-y-1">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="font-medium text-slate-500 flex items-center gap-1">
+                      <Calendar className="w-3.5 h-3.5 text-emerald-600" /> Timings:
+                    </span>
+                    <span className="font-semibold text-slate-900 truncate">
+                      {t.departure_time || 'Daily Scheduled Departures'} {t.arrival_time ? `→ Arr: ${t.arrival_time}` : ''}
+                    </span>
+                  </div>
+                  {t.live_availability_status && (
+                    <div className="flex items-center justify-between text-[10px] pt-1 border-t border-slate-200/60">
+                      <span className="text-slate-500">Live Status:</span>
+                      <span className="font-bold text-emerald-700 bg-emerald-100/60 px-1.5 py-0.5 rounded border border-emerald-300/50">
+                        {t.live_availability_status}
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -232,6 +285,27 @@ export const TransportComparison: React.FC<TransportComparisonProps> = ({ transp
               <p className="text-xs text-[#475569] mt-3 leading-relaxed">
                 <strong className="text-[#0F1E28]">Agent Rationale:</strong> {t.recommendation_rationale}
               </p>
+
+              {/* Official Booking CTA button */}
+              {t.booking_url && (
+                <div className="mt-3">
+                  <a
+                    href={t.booking_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-1.5 w-full py-2 px-3 rounded-xl bg-[#143628] hover:bg-[#1E4D3B] text-white text-xs font-bold transition-all shadow-sm group"
+                  >
+                    <span>
+                      {isTrain(t.mode)
+                        ? 'Book on Official IRCTC Portal'
+                        : isFlight(t.mode)
+                        ? 'Book on Official Airline Portal'
+                        : 'Official Booking Platform'}
+                    </span>
+                    <ExternalLink className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                  </a>
+                </div>
+              )}
             </div>
 
             {/* Provider and Advisory Notes */}
@@ -251,3 +325,4 @@ export const TransportComparison: React.FC<TransportComparisonProps> = ({ transp
     </div>
   );
 };
+

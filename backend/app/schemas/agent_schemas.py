@@ -82,6 +82,15 @@ class TransportOption(BaseModel):
     recommendation_reason: str = ""
     warnings: List[str] = Field(default_factory=list)
 
+    # Detailed booking and train/flight verification fields
+    booking_url: Optional[str] = None
+    live_availability_status: str = "Inquiry Only / Book via Official Platform"
+    train_number: Optional[str] = None
+    train_name: Optional[str] = None
+    flight_operator: Optional[str] = None
+    flight_number: Optional[str] = None
+    is_live_data: bool = False
+
 class HotelOption(BaseModel):
     id: str
     name: str

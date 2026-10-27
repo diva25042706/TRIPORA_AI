@@ -21,6 +21,12 @@ class Settings(BaseSettings):
     
     # External APIs
     OPENWEATHER_API_KEY: str = os.getenv("OPENWEATHER_API_KEY", "")
+    AMADEUS_CLIENT_ID: str = os.getenv("AMADEUS_CLIENT_ID", "")
+    AMADEUS_CLIENT_SECRET: str = os.getenv("AMADEUS_CLIENT_SECRET", "")
+    RAILWAY_API_KEY: str = os.getenv("RAILWAY_API_KEY", "")
+    RAPIDAPI_KEY: str = os.getenv("RAPIDAPI_KEY", "")
+    TRANSPORT_CACHE_TTL_SECONDS: int = 3600
+    TRANSPORT_TIMEOUT_SECONDS: float = 4.0
     
     # System Preferences
     DEFAULT_CURRENCY: str = "INR"

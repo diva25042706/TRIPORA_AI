@@ -11,8 +11,10 @@ from app.providers.infrastructure_data import (
     is_overland_contiguous,
     get_verified_airport,
     get_verified_station,
-    get_verified_bus_terminal
+    get_verified_bus_terminal,
+    get_tamil_nadu_commercial_airport
 )
+from app.providers.live_transport_client import live_transport_client
 
 def haversine_distance_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """Calculate the great circle distance between two points in kilometers."""
@@ -231,12 +233,13 @@ class TransportProvider:
             ))
 
         # ---------------------------------------------------------
+        # ---------------------------------------------------------
         # MODE 3: RAILWAY / EXPRESS TRAIN (Overland Only)
         # ---------------------------------------------------------
         if is_overland and straight_dist_km <= 3500:
             rail_dist = round(straight_dist_km * 1.28, 1)
-            # Indian Railways express trains average 60-70 km/h
-            rail_dur = round(max(2.0, 1.0 + (rail_dist / 62.0)), 1)
+            # Default speed calculation if no specific schedule
+            default_rail_dur = round(max(2.0, 1.0 + (rail_dist / 62.0)), 1)
 
             st_orig = get_verified_station(orig_norm)
             st_dest = get_verified_station(dest_norm)
@@ -244,8 +247,32 @@ class TransportProvider:
             orig_st_name = st_orig["name"] if st_orig else f"{origin.title()} Railway Station"
             dest_st_name = st_dest["name"] if st_dest else f"{destination.title()} Railway Station"
 
-            rail_fare_low = max(450.0, round(rail_dist * 1.3, -1))
-            rail_fare_high = max(1400.0, round(rail_dist * 2.6, -1))
+            # Query verified train services or live client
+            train_records = live_transport_client.fetch_train_data(orig_norm, dest_norm)
+            train_rec = train_records[0] if train_records else None
+
+            if train_rec and train_rec.get("duration_hours", 0) > 0:
+                rail_dur = train_rec["duration_hours"]
+            else:
+                rail_dur = default_rail_dur
+
+            train_name_val = train_rec.get("train_name") if train_rec else "Southern Railway Express"
+            train_num_val = train_rec.get("train_number") if train_rec else None
+            dept_time_val = train_rec.get("departure_time") if train_rec else "Daily Express Service Schedules"
+            arr_time_val = train_rec.get("arrival_time") if train_rec else None
+            booking_url_val = train_rec.get("booking_url", "https://www.irctc.co.in/nget/") if train_rec else "https://www.irctc.co.in/nget/"
+            avail_status_val = train_rec.get("availability_status", "Check Live Berth Availability on IRCTC") if train_rec else "Check Live Berth Availability on IRCTC (IRCTC PNR Required)"
+            data_st_val = train_rec.get("data_status", "verified_static") if train_rec else "verified_static"
+            verif_st_val = train_rec.get("verification_status", "verified") if train_rec else "verified"
+            is_live_val = train_rec.get("is_live_data", False) if train_rec else False
+
+            if train_rec and "fare_low" in train_rec:
+                rail_fare_low = train_rec["fare_low"]
+                rail_fare_high = train_rec["fare_high"]
+            else:
+                rail_fare_low = max(450.0, round(rail_dist * 1.3, -1))
+                rail_fare_high = max(1400.0, round(rail_dist * 2.6, -1))
+
             rail_total_low = rail_fare_low * travellers
             rail_total_high = rail_fare_high * travellers
             rail_est = round((rail_total_low + rail_total_high) / 2.0, 0)
@@ -253,37 +280,46 @@ class TransportProvider:
             is_rail_rec = (preferred_mode.lower() in ["train", "rail"] or 
                            (220 < straight_dist_km <= 700 and preferred_mode.lower() != "flight" and not any(opt.is_recommended for opt in options)))
 
+            route_notes_val = train_rec.get("route_notes") if train_rec else f"Comfortable overland route connecting {orig_st_name} and {dest_st_name} with scenic views and generous luggage allowances."
+            train_mode_label = f"Express Train / Railway ({train_name_val})" if train_rec and train_rec.get("train_name") else "Express Train / Railway (AC Chair / Sleeper / AC 3-Tier)"
+
             options.append(TransportOption(
                 id="trans_train",
-                mode="Express Train / Railway (AC Chair / Sleeper / AC 3-Tier)",
+                mode=train_mode_label,
                 origin=origin.title(),
                 destination=destination.title(),
                 origin_coordinates=c1,
                 destination_coordinates=c2,
-                origin_station_or_airport=orig_st_name,
-                destination_station_or_airport=dest_st_name,
+                origin_station_or_airport=train_rec.get("origin_station", orig_st_name) if train_rec else orig_st_name,
+                destination_station_or_airport=train_rec.get("dest_station", dest_st_name) if train_rec else dest_st_name,
                 distance=rail_dist,
                 distance_km=rail_dist,
                 distance_unit="km",
                 duration=rail_dur,
                 duration_hours=rail_dur,
-                departure_time="Daily Express Service Schedules",
+                departure_time=dept_time_val,
+                arrival_time=arr_time_val,
                 transfers=0 if (st_orig and st_dest) else 1,
                 price_range_low=rail_total_low,
                 price_range_high=rail_total_high,
                 estimated_cost=rail_est,
                 currency=currency,
                 is_recommended=is_rail_rec,
-                recommendation_rationale=f"Comfortable overland route connecting {orig_st_name} and {dest_st_name} with scenic views and generous luggage allowances.",
+                recommendation_rationale=route_notes_val,
                 source="Indian Railways / Southern Railway Network Directory",
                 provider="Indian Railways Schedule Benchmark",
                 retrieved_at=now_str,
                 data_timestamp=now_str,
-                data_status="verified_static",
-                verification_status="verified",
+                data_status=data_st_val,
+                verification_status=verif_st_val,
                 booking_advisory="Official IRCTC reservation opens 120 days in advance. Verified PNR and confirmed seat allocation required.",
                 recommendation_reason="High safety, comfortable travel with sleeping berths on long routes.",
-                warnings=[]
+                warnings=[],
+                booking_url=booking_url_val,
+                live_availability_status=avail_status_val,
+                train_number=train_num_val,
+                train_name=train_name_val,
+                is_live_data=is_live_val
             ))
 
         # ---------------------------------------------------------
@@ -323,21 +359,50 @@ class TransportProvider:
                     flight_rationale = f"International flight connecting {apt_orig['iata']} ({apt_orig['city']}) to {apt_dest['iata']} ({apt_dest['city']})."
 
         if flight_eligible and apt_orig and apt_dest:
-            # Door-to-door duration includes 2.0 hrs airport check-in & boarding overhead
-            flight_air_dur = round(straight_dist_km / 720.0, 1)
-            if not is_direct_flight:
-                flight_air_dur = round(flight_air_dur + 2.5, 1)  # layover buffer
-            total_flight_dur = round(flight_air_dur + 2.0, 1)  # include airport processing
+            # Query verified commercial flights or live client
+            live_flight = live_transport_client.fetch_flight_data(orig_norm, dest_norm)
 
-            # Pricing benchmark
-            if not is_overland:
-                # International flight
-                air_price_low = max(24000.0, round(straight_dist_km * 4.8, -2))
-                air_price_high = max(48000.0, round(straight_dist_km * 7.5, -2))
+            if live_flight:
+                flight_operator_val = live_flight.get("flight_operator", "Scheduled Commercial Airline")
+                flight_number_val = live_flight.get("flight_number")
+                origin_apt_name = live_flight.get("origin_airport", f"{apt_orig['name']} ({apt_orig['iata']})")
+                dest_apt_name = live_flight.get("dest_airport", f"{apt_dest['name']} ({apt_dest['iata']})")
+                dept_time_val = live_flight.get("departure_time", "Scheduled Airline Departures")
+                arr_time_val = live_flight.get("arrival_time")
+                total_flight_dur = live_flight.get("total_duration_hours", round((straight_dist_km / 720.0) + 2.0, 1))
+                flight_air_dur = live_flight.get("flight_duration_hours", round(straight_dist_km / 720.0, 1))
+                air_price_low = live_flight.get("fare_low", max(3200.0, round(straight_dist_km * 5.2, -1)))
+                air_price_high = live_flight.get("fare_high", max(7500.0, round(straight_dist_km * 9.0, -1)))
+                booking_url_val = live_flight.get("booking_url", "https://www.goindigo.in")
+                avail_status_val = live_flight.get("availability_status", "Scheduled Daily Commercial Flights Confirmed (Book on Airline Portal)")
+                data_st_val = live_flight.get("data_status", "verified_static")
+                verif_st_val = live_flight.get("verification_status", "verified")
+                is_live_val = live_flight.get("is_live_data", False)
             else:
-                # Domestic flight
-                air_price_low = max(3200.0, round(straight_dist_km * 5.2, -1))
-                air_price_high = max(7500.0, round(straight_dist_km * 9.0, -1))
+                # Default generic commercial flight calculation for long routes
+                flight_operator_val = "Commercial Scheduled Airline"
+                flight_number_val = None
+                origin_apt_name = f"{apt_orig['name']} ({apt_orig['iata']})"
+                dest_apt_name = f"{apt_dest['name']} ({apt_dest['iata']})"
+                dept_time_val = "Scheduled Airline Departures"
+                arr_time_val = None
+                flight_air_dur = round(straight_dist_km / 720.0, 1)
+                if not is_direct_flight:
+                    flight_air_dur = round(flight_air_dur + 2.5, 1)
+                total_flight_dur = round(flight_air_dur + 2.0, 1)
+
+                if not is_overland:
+                    air_price_low = max(24000.0, round(straight_dist_km * 4.8, -2))
+                    air_price_high = max(48000.0, round(straight_dist_km * 7.5, -2))
+                    booking_url_val = "https://www.google.com/travel/flights"
+                else:
+                    air_price_low = max(3200.0, round(straight_dist_km * 5.2, -1))
+                    air_price_high = max(7500.0, round(straight_dist_km * 9.0, -1))
+                    booking_url_val = "https://www.goindigo.in"
+                avail_status_val = "Book on Official Airline Platform"
+                data_st_val = "verified_static"
+                verif_st_val = "verified"
+                is_live_val = False
 
             flight_total_low = air_price_low * travellers
             flight_total_high = air_price_high * travellers
@@ -349,35 +414,41 @@ class TransportProvider:
 
             options.append(TransportOption(
                 id="trans_flight",
-                mode=f"Commercial Flight ({'Direct' if is_direct_flight else '1-Stop Connecting'})",
+                mode=f"Commercial Flight ({flight_operator_val if flight_operator_val else 'Direct'})",
                 origin=origin.title(),
                 destination=destination.title(),
                 origin_coordinates=c1,
                 destination_coordinates=c2,
-                origin_station_or_airport=f"{apt_orig['name']} ({apt_orig['iata']})",
-                destination_station_or_airport=f"{apt_dest['name']} ({apt_dest['iata']})",
+                origin_station_or_airport=origin_apt_name,
+                destination_station_or_airport=dest_apt_name,
                 distance=straight_dist_km,
                 distance_km=straight_dist_km,
                 distance_unit="km",
                 duration=total_flight_dur,
                 duration_hours=total_flight_dur,
-                departure_time="Scheduled Airline Departures",
+                departure_time=dept_time_val,
+                arrival_time=arr_time_val,
                 transfers=0 if is_direct_flight else 1,
                 price_range_low=flight_total_low,
                 price_range_high=flight_total_high,
                 estimated_cost=flight_est,
                 currency=currency,
                 is_recommended=is_flight_rec,
-                recommendation_rationale=f"{flight_rationale} Verified active passenger airports at both endpoints. Air time ~{flight_air_dur} hrs + 2.0 hrs airport security & boarding.",
+                recommendation_rationale=f"{flight_rationale} Verified active passenger airports at both endpoints ({apt_orig['iata']} -> {apt_dest['iata']}). Air time ~{flight_air_dur} hrs + 2.0 hrs airport security & boarding.",
                 source="Verified Airline IATA Route Network",
                 provider="Commercial Passenger Airline Matrix",
                 retrieved_at=now_str,
                 data_timestamp=now_str,
-                data_status="verified_static",
-                verification_status="verified",
-                booking_advisory="Airfares vary dynamically based on load factors and booking window. Book 2-4 weeks ahead on airline portals.",
+                data_status=data_st_val,
+                verification_status=verif_st_val,
+                booking_advisory="Airfares vary dynamically based on load factors and booking window. Book directly on official airline portals.",
                 recommendation_reason="Fastest transit time for medium-to-long distance or intercontinental journeys.",
-                warnings=[]
+                warnings=[],
+                booking_url=booking_url_val,
+                live_availability_status=avail_status_val,
+                flight_operator=flight_operator_val,
+                flight_number=flight_number_val,
+                is_live_data=is_live_val
             ))
 
         # ---------------------------------------------------------
