@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-serif: 'Playfair Display', Georgia, serif;
+    --brand-forest: #143628;
+    --brand-emerald: #10B981;
+    --brand-dark-emerald: #059669;
+    --brand-ivory: #FAF9F5;
+    --brand-surface: #FFFFFF;
+    --brand-navy: #0F1E28;
+    --brand-muted: #5A6D7C;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--brand-ivory);
+    color: var(--brand-navy);
+  }
+
+  h1, h2, .font-editorial {
+    font-family: var(--font-serif);
+  }
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f0eb;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Leaflet styling fixes */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 1rem;
+  z-index: 10;
+}
