@@ -77,6 +77,18 @@ export interface TransportOption {
   source: string;
   data_timestamp: string;
   booking_advisory: string;
+
+  // Extended Section 6 structured fields
+  origin_station_or_airport?: string | null;
+  destination_station_or_airport?: string | null;
+  transfers?: number;
+  provider?: string;
+  data_status?: 'live_provider' | 'verified_static' | 'estimated' | 'unavailable' | 'demo_data' | string;
+  verification_status?: 'verified' | 'estimated' | 'unverified' | string;
+  departure_time?: string | null;
+  arrival_time?: string | null;
+  recommendation_reason?: string;
+  warnings?: string[];
 }
 
 export interface HotelOption {

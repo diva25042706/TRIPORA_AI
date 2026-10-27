@@ -62,6 +62,26 @@ class TransportOption(BaseModel):
     data_timestamp: str
     booking_advisory: str
 
+    # Extended route validation and structured transit fields
+    origin_coordinates: Optional[tuple[float, float]] = None
+    destination_coordinates: Optional[tuple[float, float]] = None
+    origin_station_or_airport: Optional[str] = None
+    destination_station_or_airport: Optional[str] = None
+    segments: List[Dict[str, Any]] = Field(default_factory=list)
+    distance: float = 0.0
+    distance_unit: str = "km"
+    duration: float = 0.0
+    departure_time: Optional[str] = None
+    arrival_time: Optional[str] = None
+    transfers: int = 0
+    provider: str = "TRIPORA Verified Transit Engine"
+    source_url: Optional[str] = None
+    retrieved_at: str = ""
+    data_status: str = "estimated"  # live_provider | verified_static | estimated | unavailable | demo_data
+    verification_status: str = "estimated"  # verified | estimated | unverified
+    recommendation_reason: str = ""
+    warnings: List[str] = Field(default_factory=list)
+
 class HotelOption(BaseModel):
     id: str
     name: str

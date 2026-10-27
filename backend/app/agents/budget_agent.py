@@ -20,8 +20,8 @@ class BudgetOptimizationAgent:
         days: List[DayPlan],
         currency: str = "INR"
     ) -> BudgetBreakdown:
-        # 1. Transportation cost
-        trans_cost = float(selected_transport.estimated_cost if selected_transport else 4500.0 * travellers)
+        # 1. Transportation cost (from verified selected transport option)
+        trans_cost = float(selected_transport.estimated_cost) if selected_transport else 0.0
 
         # 2. Accommodation cost
         hotel_cost = float(selected_hotel.total_price if selected_hotel else 3200.0 * max(1, duration_days - 1))
