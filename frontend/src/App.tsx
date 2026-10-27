@@ -10,6 +10,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { TripWizardPage } from './pages/TripWizardPage';
 import { TripDetailsPage } from './pages/TripDetailsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { DiscoverPlacesPage } from './pages/DiscoverPlacesPage';
 
 // Protected Route Wrapper
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -37,6 +38,7 @@ export const AppContent: React.FC = () => {
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/discover" element={<DiscoverPlacesPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route

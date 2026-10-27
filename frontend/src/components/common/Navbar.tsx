@@ -32,8 +32,11 @@ export const Navbar: React.FC = () => {
 
         {/* Navigation Links */}
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-[#2C3E50]">
-          <Link to="/" className="hover:text-[#10B981] transition-colors">
-            Discover
+          <Link to="/discover" className="hover:text-[#10B981] transition-colors flex items-center gap-1.5 font-semibold">
+            <span>Discover Chennai</span>
+            <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded-full border border-emerald-300">
+              54 Places
+            </span>
           </Link>
           <a href="/#agents" className="hover:text-[#10B981] transition-colors">
             Six Specialized Agents

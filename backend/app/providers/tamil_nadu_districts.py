@@ -1,7 +1,26 @@
 from typing import Dict, Any
+from app.providers.chennai_places_data import CHENNAI_COMPREHENSIVE_PLACES
+
+_FORMATTED_CHENNAI_PLACES = [
+    {
+        "name": p["name"],
+        "category": p["category"],
+        "lat": p["lat"],
+        "lng": p["lng"],
+        "is_outdoor": p["is_outdoor"],
+        "duration": p["visit_duration_hours"],
+        "cost": p["ticket_price_inr"],
+        "desc": p["desc"],
+        "area_zone": p.get("area_zone", "chennai_city"),
+        "locality": p.get("locality", "Chennai"),
+        "image_url": p.get("image_url"),
+        "address": p.get("address")
+    }
+    for p in CHENNAI_COMPREHENSIVE_PLACES
+]
 
 TAMIL_NADU_DISTRICTS: Dict[str, Dict[str, Any]] = {
-    # 1. Chennai
+    # 1. Chennai (All 54 verified city, suburban & day-trip places)
     "chennai": {
         "city": "Chennai",
         "district": "Chennai",
@@ -9,13 +28,9 @@ TAMIL_NADU_DISTRICTS: Dict[str, Dict[str, Any]] = {
         "country": "India",
         "lat": 13.0827,
         "lng": 80.2707,
-        "places": [
-            {"name": "Marina Beach & Promenade", "category": "Nature", "lat": 13.0500, "lng": 80.2824, "is_outdoor": True, "duration": 2.0, "cost": 0, "desc": "World's second longest urban natural beach with coastal breeze and sunset lighthouse."},
-            {"name": "Kapaleeshwarar Temple (Mylapore)", "category": "Culture", "lat": 13.0334, "lng": 80.2699, "is_outdoor": False, "duration": 1.5, "cost": 0, "desc": "7th-century Dravidian Shiva temple renowned for rainbow gopuram and tank."},
-            {"name": "Government Museum & National Art Gallery (Egmore)", "category": "Culture", "lat": 13.0788, "lng": 80.2585, "is_outdoor": False, "duration": 2.5, "cost": 100, "desc": "Second oldest museum in India housing Chola bronzes and Roman antiquities."},
-            {"name": "San Thome Cathedral Basilica", "category": "Culture", "lat": 13.0339, "lng": 80.2783, "is_outdoor": False, "duration": 1.5, "cost": 0, "desc": "Neo-Gothic cathedral built over the tomb of Apostle St. Thomas."}
-        ]
+        "places": _FORMATTED_CHENNAI_PLACES
     },
+
     # 2. Coimbatore
     "coimbatore": {
         "city": "Coimbatore",
