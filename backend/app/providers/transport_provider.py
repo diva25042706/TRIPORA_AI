@@ -13,6 +13,8 @@ def haversine_distance_km(lat1: float, lon1: float, lat2: float, lon2: float) ->
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     return round(R * c, 1)
 
+from app.providers.tamil_nadu_districts import TAMIL_NADU_DISTRICTS
+
 # Approximate central coordinates for common origins & destinations
 LOCATION_COORDS: Dict[str, tuple[float, float]] = {
     "mumbai": (19.0760, 72.8777),
@@ -34,6 +36,38 @@ LOCATION_COORDS: Dict[str, tuple[float, float]] = {
     "singapore": (1.3521, 103.8198),
     "new york": (40.7128, -74.0060)
 }
+
+# Register all 38 Tamil Nadu districts into route matrix
+for _tn_key, _tn_data in TAMIL_NADU_DISTRICTS.items():
+    LOCATION_COORDS[_tn_key] = (_tn_data["lat"], _tn_data["lng"])
+
+# Tamil Nadu tourist aliases
+LOCATION_COORDS.update({
+    "ooty": (11.4102, 76.6950),
+    "udhagamandalam": (11.4102, 76.6950),
+    "kodaikanal": (10.2381, 77.4892),
+    "kodai": (10.2381, 77.4892),
+    "rameswaram": (9.2876, 79.3129),
+    "rameshwaram": (9.2876, 79.3129),
+    "trichy": (10.7905, 78.7047),
+    "tanjore": (10.7870, 79.1378),
+    "mahabalipuram": (12.6269, 80.1927),
+    "mamallapuram": (12.6269, 80.1927),
+    "yelagiri": (12.5786, 78.6397),
+    "hogenakkal": (12.1211, 78.1584),
+    "kolli hills": (11.2189, 78.1674),
+    "chettinad": (10.0760, 78.7840),
+    "megamalai": (9.7915, 77.3850),
+    "pichavaram": (11.4285, 79.7788),
+    "gingee": (12.2530, 79.4180),
+    "velankanni": (10.7672, 79.8449),
+    "tranquebar": (11.0964, 79.6465),
+    "tharangambadi": (11.0964, 79.6465),
+    "srivilliputhur": (9.5167, 77.6333),
+    "courtallam": (8.9594, 77.3142),
+    "kutralam": (8.9594, 77.3142),
+    "gangaikonda cholapuram": (11.2058, 79.4520)
+})
 
 class TransportProvider:
     """Provider comparing transportation options with verified distance & pricing estimates."""

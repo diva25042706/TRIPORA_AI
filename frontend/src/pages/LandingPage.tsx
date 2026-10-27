@@ -70,6 +70,48 @@ export const LandingPage: React.FC = () => {
 
   const featuredDestinations = [
     {
+      city: 'Chennai',
+      country: 'Tamil Nadu, India',
+      img: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=800&q=80',
+      tag: 'Marina Beach & Mylapore Heritage',
+      count: '4 Curated Landmarks',
+    },
+    {
+      city: 'Madurai',
+      country: 'Tamil Nadu, India',
+      img: 'https://images.unsplash.com/photo-1609137144813-7d9921338f24?auto=format&fit=crop&w=800&q=80',
+      tag: 'Meenakshi Temple & Nayakkar Palace',
+      count: '4 Verified Cultural Sites',
+    },
+    {
+      city: 'Ooty (Nilgiris)',
+      country: 'Tamil Nadu, India',
+      img: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80',
+      tag: 'Hill Station & UNESCO Mountain Railway',
+      count: '4 Scenic Attractions',
+    },
+    {
+      city: 'Thanjavur',
+      country: 'Tamil Nadu, India',
+      img: 'https://images.unsplash.com/photo-1600100397608-f010f4438317?auto=format&fit=crop&w=800&q=80',
+      tag: 'Chola Brihadisvara Temple (Big Temple)',
+      count: '3 UNESCO Heritage Sites',
+    },
+    {
+      city: 'Rameswaram',
+      country: 'Tamil Nadu, India',
+      img: 'https://images.unsplash.com/photo-1616489953149-8d7b3e0c0342?auto=format&fit=crop&w=800&q=80',
+      tag: 'Pamban Sea Bridge & Dhanushkodi',
+      count: '4 Coastal & Sacred Sites',
+    },
+    {
+      city: 'Kanyakumari',
+      country: 'Tamil Nadu, India',
+      img: 'https://images.unsplash.com/photo-1596176530529-78163a4f7af2?auto=format&fit=crop&w=800&q=80',
+      tag: 'Vivekananda Rock & Triveni Sangam',
+      count: '4 Oceanfront Landmarks',
+    },
+    {
       city: 'Goa',
       country: 'India',
       img: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=800&q=80',
@@ -82,20 +124,6 @@ export const LandingPage: React.FC = () => {
       img: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80',
       tag: 'Art, Architecture & Gastronomy',
       count: '8 Verified Sights',
-    },
-    {
-      city: 'Tokyo',
-      country: 'Japan',
-      img: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=800&q=80',
-      tag: 'Futurism & Sacred Temples',
-      count: '7 Verified Landmarks',
-    },
-    {
-      city: 'Jaipur',
-      country: 'India',
-      img: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=800&q=80',
-      tag: 'Palaces & Royal Astronomy',
-      count: '7 Curated Fortresses',
     },
   ];
 
@@ -247,7 +275,7 @@ export const LandingPage: React.FC = () => {
               Verified Destination Catalog
             </h2>
             <p className="text-sm text-[#5A6D7C] mt-1">
-              Curated locations with verified GPS coordinates, operating hours, and realistic pricing.
+              Curated locations with verified GPS coordinates, operating hours, and realistic pricing — featuring all 38 districts of Tamil Nadu and international hubs.
             </p>
           </div>
           <button

@@ -55,3 +55,27 @@ def test_planner_rain_adaptation():
     # All activities on rainy day should be indoor or sheltered
     for act in days[0].activities:
         assert act.is_outdoor is False or "sheltered" in act.relevant_notes.lower()
+
+@pytest.mark.asyncio
+async def test_tamil_nadu_districts_catalog_resolution():
+    """Verify that Tamil Nadu districts and popular aliases resolve verified POIs and coordinates."""
+    from app.providers.geo_places_provider import geo_places_provider
+    from app.providers.transport_provider import LOCATION_COORDS
+
+    # Test direct district name
+    madurai_info = await geo_places_provider.get_destination_info("Madurai")
+    assert madurai_info["is_curated"] is True
+    assert "Meenakshi Amman Temple" in [p["name"] for p in madurai_info["places"]]
+    assert 9.0 < madurai_info["latitude"] < 10.5
+
+    # Test alias resolution (e.g. Ooty -> Nilgiris)
+    ooty_info = await geo_places_provider.get_destination_info("Ooty")
+    assert ooty_info["is_curated"] is True
+    assert any("Botanical" in p["name"] for p in ooty_info["places"])
+
+    # Test coordinate registration for intercity transport
+    assert "chennai" in LOCATION_COORDS
+    assert "nilgiris" in LOCATION_COORDS
+    assert "ooty" in LOCATION_COORDS
+    assert "thanjavur" in LOCATION_COORDS
+

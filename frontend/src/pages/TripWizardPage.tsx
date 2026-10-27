@@ -224,11 +224,17 @@ export const TripWizardPage: React.FC = () => {
 
             {/* Quick destination suggestion buttons */}
             <div>
-              <span className="text-[11px] font-semibold text-[#8C9BA5] block mb-2">
-                Popular Verified Catalog Locations:
-              </span>
-              <div className="flex flex-wrap gap-2">
-                {['Goa', 'Jaipur', 'Paris', 'Tokyo'].map((city) => (
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-semibold text-[#8C9BA5]">
+                  Popular Verified Locations:
+                </span>
+                <span className="text-[11px] font-bold text-[#059669]">
+                  38 Tamil Nadu Districts Added
+                </span>
+              </div>
+
+              <div className="flex flex-wrap gap-2 mb-3">
+                {['Chennai', 'Madurai', 'Ooty', 'Kodaikanal', 'Rameswaram', 'Kanyakumari', 'Thanjavur', 'Coimbatore', 'Goa', 'Jaipur'].map((city) => (
                   <button
                     key={city}
                     type="button"
@@ -242,6 +248,60 @@ export const TripWizardPage: React.FC = () => {
                     {city}
                   </button>
                 ))}
+              </div>
+
+              {/* Dedicated All 38 Tamil Nadu Districts Selector */}
+              <div className="p-3 bg-[#F0FDF4] border border-[#BBF7D0] rounded-xl text-left">
+                <label className="text-[11px] font-bold text-[#143628] uppercase tracking-wider block mb-1">
+                  Select Any Tamil Nadu District (All 38 Curated with GPS & Landmarks):
+                </label>
+                <select
+                  value={destination}
+                  onChange={(e) => {
+                    if (e.target.value) setDestination(e.target.value);
+                  }}
+                  className="w-full px-3 py-2 text-xs bg-white border border-[#86EFAC] rounded-lg text-[#0F1E28] focus:ring-2 focus:ring-[#10B981] focus:outline-none"
+                >
+                  <option value="">-- Choose from all 38 Tamil Nadu Districts --</option>
+                  <option value="Ariyalur">Ariyalur (Gangaikonda Cholapuram & Dinosaur Fossils)</option>
+                  <option value="Chengalpattu">Chengalpattu (Mahabalipuram & Shore Temple)</option>
+                  <option value="Chennai">Chennai (Marina Beach & Mylapore Kapaleeshwarar)</option>
+                  <option value="Coimbatore">Coimbatore (Isha Adiyogi & Marudhamalai)</option>
+                  <option value="Cuddalore">Cuddalore (Pichavaram Mangrove Forests)</option>
+                  <option value="Dharmapuri">Dharmapuri (Hogenakkal Waterfalls)</option>
+                  <option value="Dindigul">Dindigul (Kodaikanal Hill Station & Lake)</option>
+                  <option value="Erode">Erode (Bhavani Sangameshwarar & Kodiveri Dam)</option>
+                  <option value="Kallakurichi">Kallakurichi (Kalrayan Hills & Megam Falls)</option>
+                  <option value="Kanchipuram">Kanchipuram (Kailasanathar & Silk Weaving)</option>
+                  <option value="Kanyakumari">Kanyakumari (Vivekananda Rock & Sunset Point)</option>
+                  <option value="Karur">Karur (Pasupatheeswarar & Mayanur Barrage)</option>
+                  <option value="Krishnagiri">Krishnagiri (Krishnagiri Dam & Sayed Basha Fort)</option>
+                  <option value="Madurai">Madurai (Meenakshi Amman & Thirumalai Nayakkar)</option>
+                  <option value="Mayiladuthurai">Mayiladuthurai (Tranquebar Dutch Fort & Poompuhar)</option>
+                  <option value="Nagapattinam">Nagapattinam (Velankanni Basilica & Soundararaja)</option>
+                  <option value="Namakkal">Namakkal (Kolli Hills 70 Hairpin Bends & Agaya Gangai)</option>
+                  <option value="Nilgiris">Nilgiris (Ooty Botanical Garden & Toy Train)</option>
+                  <option value="Perambalur">Perambalur (Ranjankudi Fortress & Siruvachur)</option>
+                  <option value="Pudukkottai">Pudukkottai (Sittanavasal Caves & Thirumayam Fort)</option>
+                  <option value="Ramanathapuram">Ramanathapuram (Rameswaram Temple & Dhanushkodi)</option>
+                  <option value="Ranipet">Ranipet (Arcot Fortress & Mahendravadi Caves)</option>
+                  <option value="Salem">Salem (Yercaud Hill Station & Mettur Dam)</option>
+                  <option value="Sivagangai">Sivagangai (Chettinad Mansions & Kanadukathan)</option>
+                  <option value="Tenkasi">Tenkasi (Courtallam Waterfalls & Kasi Viswanathar)</option>
+                  <option value="Thanjavur">Thanjavur (Brihadisvara Big Temple & Palace)</option>
+                  <option value="Theni">Theni (Megamalai Cloud Mountain & Suruli Falls)</option>
+                  <option value="Thoothukudi">Thoothukudi (Tiruchendur Murugan & Hare Island)</option>
+                  <option value="Tiruchirappalli">Tiruchirappalli (Srirangam Temple & Rockfort)</option>
+                  <option value="Tirunelveli">Tirunelveli (Nellaiappar Temple & Manimuthar)</option>
+                  <option value="Tirupathur">Tirupathur (Yelagiri Hills & Jalagamparai)</option>
+                  <option value="Tiruppur">Tiruppur (Uthukuli & Amaravathi Crocodile Bank)</option>
+                  <option value="Tiruvallur">Tiruvallur (Pulicat Lake Bird Sanctuary & Poondi)</option>
+                  <option value="Tiruvannamalai">Tiruvannamalai (Annamalaiyar Temple & Giri Valam)</option>
+                  <option value="Tiruvarur">Tiruvarur (Thyagaraja Chariot & Muthupet Mangroves)</option>
+                  <option value="Vellore">Vellore (Vellore Fort & Sripuram Golden Temple)</option>
+                  <option value="Viluppuram">Viluppuram (Gingee Fort - Troy of the East)</option>
+                  <option value="Virudhunagar">Virudhunagar (Srivilliputhur Andal Tower & Shenbagathoppu)</option>
+                </select>
               </div>
             </div>
           </div>

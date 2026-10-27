@@ -2,6 +2,7 @@ import math
 from typing import List, Dict, Any, Optional
 import httpx
 from app.core.config import settings
+from app.providers.tamil_nadu_districts import TAMIL_NADU_DISTRICTS
 
 # Curated high-fidelity destination database with verified landmarks, coordinates, and categories
 DESTINATION_CATALOG: Dict[str, Dict[str, Any]] = {
@@ -71,6 +72,41 @@ DESTINATION_CATALOG: Dict[str, Dict[str, Any]] = {
     }
 }
 
+# Merge all 38 Tamil Nadu districts into curated destination catalog
+DESTINATION_CATALOG.update(TAMIL_NADU_DISTRICTS)
+
+# Map common tourist town aliases to district keys
+TN_DISTRICT_ALIASES: Dict[str, str] = {
+    "ooty": "nilgiris",
+    "udhagamandalam": "nilgiris",
+    "kodaikanal": "dindigul",
+    "kodai": "dindigul",
+    "rameswaram": "ramanathapuram",
+    "rameshwaram": "ramanathapuram",
+    "trichy": "tiruchirappalli",
+    "tanjore": "thanjavur",
+    "mahabalipuram": "chengalpattu",
+    "mamallapuram": "chengalpattu",
+    "yelagiri": "tirupathur",
+    "hogenakkal": "dharmapuri",
+    "kolli hills": "namakkal",
+    "chettinad": "sivagangai",
+    "megamalai": "theni",
+    "pichavaram": "cuddalore",
+    "gingee": "villupuram",
+    "velankanni": "nagapattinam",
+    "tranquebar": "mayiladuthurai",
+    "tharangambadi": "mayiladuthurai",
+    "srivilliputhur": "virudhunagar",
+    "courtallam": "tenkasi",
+    "kutralam": "tenkasi",
+    "gangaikonda cholapuram": "ariyalur",
+}
+
+for alias, district_key in TN_DISTRICT_ALIASES.items():
+    if district_key in TAMIL_NADU_DISTRICTS and alias not in DESTINATION_CATALOG:
+        DESTINATION_CATALOG[alias] = TAMIL_NADU_DISTRICTS[district_key]
+
 class GeoPlacesProvider:
     """Provider for geocoding, coordinates, and verified attraction data."""
 
@@ -80,8 +116,25 @@ class GeoPlacesProvider:
     async def get_destination_info(self, destination_name: str) -> Dict[str, Any]:
         """Look up coordinates and attractions for a destination."""
         norm_key = destination_name.strip().lower()
+
+        # Check aliases first
+        if norm_key in TN_DISTRICT_ALIASES and TN_DISTRICT_ALIASES[norm_key] in self.catalog:
+            data = self.catalog[TN_DISTRICT_ALIASES[norm_key]]
+            return {
+                "destination": data["city"],
+                "country": data["country"],
+                "latitude": data["lat"],
+                "longitude": data["lng"],
+                "places": data["places"],
+                "is_curated": True,
+                "source": "TRIPORA Verified Destination Knowledge Base (Tamil Nadu State Catalog)"
+            }
+
         for key, data in self.catalog.items():
             if key in norm_key or norm_key in key:
+                source_lbl = "TRIPORA Verified Destination Knowledge Base"
+                if "state" in data and data["state"] == "Tamil Nadu":
+                    source_lbl = "TRIPORA Verified Destination Knowledge Base (Tamil Nadu 38-District Catalog)"
                 return {
                     "destination": data["city"],
                     "country": data["country"],
@@ -89,7 +142,7 @@ class GeoPlacesProvider:
                     "longitude": data["lng"],
                     "places": data["places"],
                     "is_curated": True,
-                    "source": "TRIPORA Verified Destination Knowledge Base"
+                    "source": source_lbl
                 }
         
         # Try live geocoding via OpenStreetMap Nominatim with bounded timeout
