@@ -11,22 +11,46 @@ export const TransportComparison: React.FC<TransportComparisonProps> = ({ transp
   const [filterMode, setFilterMode] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'recommended' | 'duration' | 'price'>('recommended');
 
-  const getModeIcon = (mode: string) => {
+  const isFlight = (mode: string) => {
     const m = mode.toLowerCase();
-    if (m.includes('flight') || m.includes('air')) return <Plane className="w-5 h-5 text-blue-600" />;
-    if (m.includes('train') || m.includes('rail')) return <Train className="w-5 h-5 text-emerald-600" />;
-    if (m.includes('bus') || m.includes('coach')) return <Bus className="w-5 h-5 text-amber-600" />;
+    return m.includes('flight') || m.includes('airline') || m.includes('aviation') || m.includes('plane');
+  };
+
+  const isTrain = (mode: string) => {
+    const m = mode.toLowerCase();
+    return m.includes('train') || m.includes('rail');
+  };
+
+  const isBus = (mode: string) => {
+    const m = mode.toLowerCase();
+    return m.includes('bus') || m.includes('coach');
+  };
+
+  const isCab = (mode: string) => {
+    const m = mode.toLowerCase();
+    return m.includes('cab') || m.includes('car') || m.includes('taxi') || m.includes('self-drive');
+  };
+
+  const getModeIcon = (mode: string) => {
+    if (isFlight(mode)) return <Plane className="w-5 h-5 text-blue-600" />;
+    if (isTrain(mode)) return <Train className="w-5 h-5 text-emerald-600" />;
+    if (isBus(mode)) return <Bus className="w-5 h-5 text-amber-600" />;
     return <Car className="w-5 h-5 text-purple-600" />;
   };
+
+  // Pre-calculate counts for each mode
+  const flightCount = transports.filter((t) => isFlight(t.mode)).length;
+  const trainCount = transports.filter((t) => isTrain(t.mode)).length;
+  const busCount = transports.filter((t) => isBus(t.mode)).length;
+  const cabCount = transports.filter((t) => isCab(t.mode)).length;
 
   // Filter transports
   const filtered = transports.filter((t) => {
     if (filterMode === 'all') return true;
-    const m = t.mode.toLowerCase();
-    if (filterMode === 'flight') return m.includes('flight') || m.includes('air');
-    if (filterMode === 'train') return m.includes('train') || m.includes('rail');
-    if (filterMode === 'bus') return m.includes('bus') || m.includes('coach');
-    if (filterMode === 'cab') return m.includes('cab') || m.includes('car') || m.includes('taxi');
+    if (filterMode === 'flight') return isFlight(t.mode);
+    if (filterMode === 'train') return isTrain(t.mode);
+    if (filterMode === 'bus') return isBus(t.mode);
+    if (filterMode === 'cab') return isCab(t.mode);
     return true;
   });
 
@@ -57,10 +81,10 @@ export const TransportComparison: React.FC<TransportComparisonProps> = ({ transp
         <div className="flex flex-wrap gap-1.5">
           {[
             { id: 'all', label: `All Eligible (${transports.length})` },
-            { id: 'cab', label: 'Cab / Road' },
-            { id: 'train', label: 'Express Rail' },
-            { id: 'bus', label: 'Intercity Bus' },
-            { id: 'flight', label: 'Flights' },
+            { id: 'cab', label: `Cab / Road (${cabCount})` },
+            { id: 'train', label: `Express Rail (${trainCount})` },
+            { id: 'bus', label: `Intercity Bus (${busCount})` },
+            { id: 'flight', label: `Flights (${flightCount})` },
           ].map((item) => (
             <button
               key={item.id}

@@ -10,7 +10,8 @@ from app.providers.infrastructure_data import (
     INTERNATIONAL_HUBS,
     is_overland_contiguous,
     get_verified_airport,
-    get_verified_station
+    get_verified_station,
+    get_verified_bus_terminal
 )
 
 def haversine_distance_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
