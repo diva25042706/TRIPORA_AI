@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Compass,
   ArrowRight,
@@ -19,19 +19,26 @@ import { useAuth } from '../context/AuthContext';
 
 export const TripWizardPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
+
+  const stateData = (location.state as { prefilledDestination?: string; prefilledInterests?: string[] }) || {};
 
   // Wizard state
   const [step, setStep] = useState<number>(1);
   const [origin, setOrigin] = useState<string>('Mumbai');
-  const [destination, setDestination] = useState<string>('Goa');
+  const [destination, setDestination] = useState<string>(stateData.prefilledDestination || 'Goa');
   const [startDate, setStartDate] = useState<string>('2026-11-15');
   const [endDate, setEndDate] = useState<string>('2026-11-18');
   const [travellers, setTravellers] = useState<number>(2);
   const [budget, setBudget] = useState<number>(45000);
   const [currency, setCurrency] = useState<string>(user?.preferred_currency || 'INR');
   const [travelStyle, setTravelStyle] = useState<string>('Balanced');
-  const [interests, setInterests] = useState<string[]>(['Culture', 'Food', 'Sightseeing']);
+  const [interests, setInterests] = useState<string[]>(
+    stateData.prefilledInterests && stateData.prefilledInterests.length > 0
+      ? stateData.prefilledInterests
+      : ['Culture', 'Food', 'Sightseeing']
+  );
   const [accommodationPref, setAccommodationPref] = useState<string>('Hotel');
   const [transportPref, setTransportPref] = useState<string>('Best Value');
 

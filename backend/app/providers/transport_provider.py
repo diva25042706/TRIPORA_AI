@@ -54,6 +54,7 @@ for _tn_key, _tn_data in TAMIL_NADU_DISTRICTS.items():
 
 # Tamil Nadu tourist aliases
 LOCATION_COORDS.update({
+    "kanyakumari": (8.0883, 77.5385),
     "ooty": (11.4102, 76.6950),
     "udhagamandalam": (11.4102, 76.6950),
     "kodaikanal": (10.2381, 77.4892),
@@ -79,6 +80,12 @@ LOCATION_COORDS.update({
     "kutralam": (8.9594, 77.3142),
     "gangaikonda cholapuram": (11.2058, 79.4520)
 })
+
+from app.providers.geo_places_provider import TN_DISTRICT_ALIASES
+for _alias, _dist_key in TN_DISTRICT_ALIASES.items():
+    if _dist_key in TAMIL_NADU_DISTRICTS and _alias not in LOCATION_COORDS:
+        LOCATION_COORDS[_alias] = (TAMIL_NADU_DISTRICTS[_dist_key]["lat"], TAMIL_NADU_DISTRICTS[_dist_key]["lng"])
+
 
 class TransportProvider:
     """Route-aware multi-modal transportation engine verifying infrastructure and operational feasibility."""

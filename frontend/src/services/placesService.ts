@@ -49,8 +49,27 @@ export interface PlaceSearchResponse {
   available_zones: AreaZoneCount[];
 }
 
+export interface DistrictSummary {
+  district: string;
+  district_key: string;
+  city: string;
+  lat: number;
+  lng: number;
+  attraction_count: number;
+  popular_attractions: string[];
+}
+
+export interface ResolvedDestination {
+  query: string;
+  district: string;
+  matched_alias?: string;
+  is_tamil_nadu: boolean;
+  total_attractions: number;
+}
+
 export interface PlaceSearchParams {
   query?: string;
+  district?: string;
   category?: string;
   area_zone?: string;
   sort_by?: string;
@@ -71,6 +90,16 @@ export const placesService = {
 
   getZones: async (): Promise<AreaZoneCount[]> => {
     const response = await api.get<AreaZoneCount[]>('/places/zones');
+    return response.data;
+  },
+
+  getDistricts: async (): Promise<DistrictSummary[]> => {
+    const response = await api.get<DistrictSummary[]>('/places/districts');
+    return response.data;
+  },
+
+  resolveDestination: async (query: string): Promise<ResolvedDestination> => {
+    const response = await api.get<ResolvedDestination>('/places/resolve', { params: { query } });
     return response.data;
   },
 

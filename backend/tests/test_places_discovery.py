@@ -19,7 +19,7 @@ async def test_places_discovery_removes_three_result_limit():
         assert "available_categories" in data
         assert len(data["available_categories"]) >= 10
         assert "available_zones" in data
-        assert len(data["available_zones"]) == 3
+        assert len(data["available_zones"]) >= 3
 
 @pytest.mark.asyncio
 async def test_places_discovery_pagination():

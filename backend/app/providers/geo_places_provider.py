@@ -75,33 +75,69 @@ DESTINATION_CATALOG: Dict[str, Dict[str, Any]] = {
 # Merge all 38 Tamil Nadu districts into curated destination catalog
 DESTINATION_CATALOG.update(TAMIL_NADU_DISTRICTS)
 
-# Map common tourist town aliases to district keys
+# Map common tourist town aliases and spelling variations to district keys
 TN_DISTRICT_ALIASES: Dict[str, str] = {
+    # Major tourist towns
     "ooty": "nilgiris",
     "udhagamandalam": "nilgiris",
+    "coonoor": "nilgiris",
     "kodaikanal": "dindigul",
     "kodai": "dindigul",
+    "palani": "dindigul",
     "rameswaram": "ramanathapuram",
     "rameshwaram": "ramanathapuram",
+    "dhanushkodi": "ramanathapuram",
     "trichy": "tiruchirappalli",
+    "srirangam": "tiruchirappalli",
     "tanjore": "thanjavur",
+    "kumbakonam": "thanjavur",
     "mahabalipuram": "chengalpattu",
     "mamallapuram": "chengalpattu",
+    "kovalam": "chengalpattu",
     "yelagiri": "tirupathur",
     "hogenakkal": "dharmapuri",
     "kolli hills": "namakkal",
-    "chettinad": "sivagangai",
+    "chettinad": "sivaganga",
+    "karaikudi": "sivaganga",
     "megamalai": "theni",
+    "meghamalai": "theni",
     "pichavaram": "cuddalore",
-    "gingee": "villupuram",
+    "chidambaram": "cuddalore",
+    "gingee": "viluppuram",
     "velankanni": "nagapattinam",
+    "nagore": "nagapattinam",
     "tranquebar": "mayiladuthurai",
     "tharangambadi": "mayiladuthurai",
     "srivilliputhur": "virudhunagar",
+    "rajapalayam": "virudhunagar",
     "courtallam": "tenkasi",
     "kutralam": "tenkasi",
     "gangaikonda cholapuram": "ariyalur",
+    "yercaud": "salem",
+    "mettur": "salem",
+    "tiruchendur": "thoothukudi",
+    "tuticorin": "thoothukudi",
+    "pollachi": "coimbatore",
+    "valparai": "coimbatore",
+    "bhavani": "erode",
+    "tiruthani": "tiruvallur",
+    "pulicat": "tiruvallur",
+    "mannargudi": "tiruvarur",
+    "arcot": "ranipet",
+    # Administrative spelling variations
+    "kanchipuram": "kancheepuram",
+    "kanyakumari": "kanniyakumari",
+    "sivagangai": "sivaganga",
+    "villupuram": "viluppuram",
+    "thiruvannamalai": "tiruvannamalai",
+    "thiruchirappalli": "tiruchirappalli",
+    "thiruvarur": "tiruvarur",
+    "thirunelveli": "tirunelveli",
+    "thirupathur": "tirupathur",
+    "thiruppur": "tiruppur",
+    "thiruvallur": "tiruvallur",
 }
+
 
 for alias, district_key in TN_DISTRICT_ALIASES.items():
     if district_key in TAMIL_NADU_DISTRICTS and alias not in DESTINATION_CATALOG:
@@ -208,5 +244,33 @@ class GeoPlacesProvider:
                 "desc": desc
             })
         return results
+
+
+def resolve_destination_district(destination_name: str) -> Optional[str]:
+    """Resolve a destination name or town alias to a normalized Tamil Nadu district key, or None."""
+    norm = destination_name.strip().lower()
+    if norm in TN_DISTRICT_ALIASES:
+        return TN_DISTRICT_ALIASES[norm]
+    if norm in TAMIL_NADU_DISTRICTS:
+        return norm
+    for dist_key in TAMIL_NADU_DISTRICTS:
+        if dist_key in norm or norm in dist_key:
+            return dist_key
+    return None
+
+
+def get_places_for_destination(destination_name: str) -> List[Dict[str, Any]]:
+    """Retrieve verified places for a destination, checking district aliases and catalog."""
+    dist_key = resolve_destination_district(destination_name)
+    if dist_key and dist_key in TAMIL_NADU_DISTRICTS:
+        return TAMIL_NADU_DISTRICTS[dist_key]["places"]
+    norm = destination_name.strip().lower()
+    if norm in DESTINATION_CATALOG:
+        return DESTINATION_CATALOG[norm]["places"]
+    for key, data in DESTINATION_CATALOG.items():
+        if key in norm or norm in key:
+            return data["places"]
+    return []
+
 
 geo_places_provider = GeoPlacesProvider()

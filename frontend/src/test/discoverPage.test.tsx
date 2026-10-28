@@ -11,6 +11,8 @@ vi.mock('../services/placesService', () => ({
     searchPlaces: vi.fn(),
     getCategories: vi.fn(),
     getZones: vi.fn(),
+    getDistricts: vi.fn(),
+    resolveDestination: vi.fn(),
     getPlaceById: vi.fn(),
   },
 }));
@@ -106,6 +108,10 @@ const mockPlaces = [
 describe('DiscoverPlacesPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    (placesService.getDistricts as any).mockResolvedValue([
+      { district: 'Chennai', district_key: 'chennai', city: 'Chennai', lat: 13.08, lng: 80.27, attraction_count: 54, popular_attractions: ['Marina Beach'] },
+      { district: 'Madurai', district_key: 'madurai', city: 'Madurai', lat: 9.92, lng: 78.12, attraction_count: 6, popular_attractions: ['Meenakshi Amman Temple'] }
+    ]);
     (placesService.searchPlaces as any).mockResolvedValue({
       total: 54,
       page: 1,
@@ -138,8 +144,8 @@ describe('DiscoverPlacesPage', () => {
       </BrowserRouter>
     );
 
-    expect(screen.getByText(/Discover Chennai, Greater Suburbs & Day Trips/i)).toBeDefined();
-    expect(screen.getAllByPlaceholderText(/Search by name, neighborhood/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/Discover All 38 Districts of Tamil Nadu/i)).toBeDefined();
+    expect(screen.getAllByPlaceholderText(/Search places/i).length).toBeGreaterThan(0);
 
     await waitFor(() => {
       expect(screen.getByText('Marina Beach & Promenade')).toBeDefined();
@@ -180,7 +186,7 @@ describe('DiscoverPlacesPage', () => {
       </BrowserRouter>
     );
 
-    const searchInputs = screen.getAllByPlaceholderText(/Search by name, neighborhood/i);
+    const searchInputs = screen.getAllByPlaceholderText(/Search places/i);
     fireEvent.change(searchInputs[0], { target: { value: 'Mylapore' } });
 
     await waitFor(() => {

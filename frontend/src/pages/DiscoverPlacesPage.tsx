@@ -17,7 +17,7 @@ import {
   Accessibility,
   ArrowRight
 } from 'lucide-react';
-import { placesService, PlaceItem, CategoryCount, AreaZoneCount } from '../services/placesService';
+import { placesService, PlaceItem, CategoryCount, AreaZoneCount, DistrictSummary } from '../services/placesService';
 
 export const DiscoverPlacesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -26,6 +26,7 @@ export const DiscoverPlacesPage: React.FC = () => {
   const [places, setPlaces] = useState<PlaceItem[]>([]);
   const [categories, setCategories] = useState<CategoryCount[]>([]);
   const [zones, setZones] = useState<AreaZoneCount[]>([]);
+  const [districts, setDistricts] = useState<DistrictSummary[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
@@ -33,6 +34,7 @@ export const DiscoverPlacesPage: React.FC = () => {
 
   // Filters & Pagination
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedDistrict, setSelectedDistrict] = useState<string>('all');
   const [selectedZone, setSelectedZone] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('default');
@@ -41,6 +43,13 @@ export const DiscoverPlacesPage: React.FC = () => {
 
   // Modal State
   const [activeModalPlace, setActiveModalPlace] = useState<PlaceItem | null>(null);
+
+  // Load districts on mount
+  useEffect(() => {
+    placesService.getDistricts()
+      .then((data) => setDistricts(data))
+      .catch((err) => console.warn('Could not load districts:', err));
+  }, []);
 
   // Initial Fetch & Filter Fetch
   const fetchPlaces = async (page: number, append: boolean = false) => {
@@ -54,6 +63,7 @@ export const DiscoverPlacesPage: React.FC = () => {
 
       const res = await placesService.searchPlaces({
         query: searchQuery.trim() || undefined,
+        district: selectedDistrict !== 'all' ? selectedDistrict : undefined,
         category: selectedCategory !== 'all' ? selectedCategory : undefined,
         area_zone: selectedZone !== 'all' ? selectedZone : undefined,
         sort_by: sortBy,
@@ -84,7 +94,7 @@ export const DiscoverPlacesPage: React.FC = () => {
   useEffect(() => {
     setCurrentPage(1);
     fetchPlaces(1, false);
-  }, [searchQuery, selectedZone, selectedCategory, sortBy]);
+  }, [searchQuery, selectedDistrict, selectedZone, selectedCategory, sortBy]);
 
   const handleLoadMore = () => {
     if (!hasMore || isLoadingMore) return;
@@ -113,36 +123,36 @@ export const DiscoverPlacesPage: React.FC = () => {
               Verified Destination Catalog
             </span>
             <span className="text-xs text-emerald-200 font-semibold px-2.5 py-0.5 rounded-full bg-white/10 border border-white/15">
-              Chennai & Metropolitan Area
+              All 38 Tamil Nadu Districts
             </span>
             <span className="text-xs text-amber-200 font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/30">
-              54+ Verified Spots • Zero 3-Place Limit
+              230+ Verified Spots • Zero Multi-Day Repetition
             </span>
           </div>
 
           <div className="max-w-3xl space-y-3">
             <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight font-editorial leading-tight">
-              Discover Chennai, Greater Suburbs & Day Trips
+              Discover All 38 Districts of Tamil Nadu
             </h1>
             <p className="text-sm sm:text-base text-emerald-100/85 leading-relaxed">
-              Explore 54 verified cultural monuments, golden waterfronts, sacred sanctuaries, historic museums, 
-              and tranquil nature reserves. Sourced directly from TTDC, Incredible India, and Chennai District Tourism.
+              Explore 230+ verified cultural monuments, golden waterfronts, sacred sanctuaries, historic hill stations, 
+              and nature reserves across all 38 districts. Sourced directly from TTDC, Incredible India, ASI, HR&CE, and District Administrations.
             </p>
           </div>
 
           {/* Area Zone Filter Tabs */}
           <div className="pt-2 flex flex-wrap gap-2">
             <button
-              onClick={() => setSelectedZone('all')}
+              onClick={() => { setSelectedZone('all'); setSelectedDistrict('all'); }}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-2 ${
-                selectedZone === 'all'
+                selectedZone === 'all' && selectedDistrict === 'all'
                   ? 'bg-[#10B981] text-[#143628] scale-105 shadow-md'
                   : 'bg-white/10 hover:bg-white/20 text-white border border-white/15'
               }`}
             >
-              <span>All Locations</span>
+              <span>All 38 Districts</span>
               <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-black/20 font-black">
-                {zones.reduce((acc, z) => acc + z.count, 0) || 54}
+                {totalCount || 230}
               </span>
             </button>
             {zones.map((z) => (
@@ -171,11 +181,11 @@ export const DiscoverPlacesPage: React.FC = () => {
         <div className="bg-white rounded-2xl shadow-xl border border-[#E7E5DF] p-4 sm:p-6 mb-8 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
             {/* Search Input */}
-            <div className="md:col-span-6 relative">
+            <div className="md:col-span-4 relative">
               <Search className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8C9BA5]" />
               <input
                 type="text"
-                placeholder="Search by name, neighborhood (e.g. Mylapore, ECR), or keyword..."
+                placeholder="Search places, towns, temples..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-11 pr-10 py-3 bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl text-sm text-[#0F1E28] placeholder-[#8C9BA5] focus:outline-none focus:ring-2 focus:ring-[#10B981] focus:border-transparent transition-all"
@@ -190,6 +200,22 @@ export const DiscoverPlacesPage: React.FC = () => {
               )}
             </div>
 
+            {/* District Dropdown */}
+            <div className="md:col-span-3">
+              <select
+                value={selectedDistrict}
+                onChange={(e) => setSelectedDistrict(e.target.value)}
+                className="w-full py-3 px-3 bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl text-sm font-medium text-[#0F1E28] focus:outline-none focus:ring-2 focus:ring-[#10B981]"
+              >
+                <option value="all">All Districts (38)</option>
+                {districts.map((d) => (
+                  <option key={d.district} value={d.district}>
+                    {d.district} ({d.attraction_count})
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* Category Dropdown */}
             <div className="md:col-span-3">
               <select
@@ -197,7 +223,7 @@ export const DiscoverPlacesPage: React.FC = () => {
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="w-full py-3 px-3.5 bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl text-sm font-medium text-[#0F1E28] focus:outline-none focus:ring-2 focus:ring-[#10B981]"
               >
-                <option value="all">All Categories ({categories.reduce((a, b) => a + b.count, 0) || 54})</option>
+                <option value="all">All Categories ({categories.reduce((a, b) => a + b.count, 0) || totalCount})</option>
                 {categories.map((c) => (
                   <option key={c.category} value={c.category}>
                     {c.category} ({c.count})
@@ -207,18 +233,18 @@ export const DiscoverPlacesPage: React.FC = () => {
             </div>
 
             {/* Sort Dropdown */}
-            <div className="md:col-span-3">
+            <div className="md:col-span-2">
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="w-full py-3 px-3.5 bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl text-sm font-medium text-[#0F1E28] focus:outline-none focus:ring-2 focus:ring-[#10B981]"
+                className="w-full py-3 px-3 bg-[#F8F9FA] border border-[#E2E8F0] rounded-xl text-sm font-medium text-[#0F1E28] focus:outline-none focus:ring-2 focus:ring-[#10B981]"
               >
                 <option value="default">Sort: Recommended</option>
-                <option value="name_asc">Name: A to Z</option>
-                <option value="name_desc">Name: Z to A</option>
-                <option value="duration_asc">Duration: Shortest First</option>
-                <option value="duration_desc">Duration: Longest First</option>
-                <option value="price_asc">Ticket: Free / Lowest First</option>
+                <option value="name_asc">A to Z</option>
+                <option value="name_desc">Z to A</option>
+                <option value="duration_asc">Shortest Time</option>
+                <option value="duration_desc">Longest Time</option>
+                <option value="price_asc">Lowest Ticket</option>
               </select>
             </div>
           </div>
