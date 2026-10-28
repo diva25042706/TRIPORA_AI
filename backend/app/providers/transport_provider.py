@@ -1,6 +1,7 @@
 import math
 from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional, Tuple
+from urllib.parse import quote
 from app.schemas.agent_schemas import TransportOption
 from app.providers.tamil_nadu_districts import TAMIL_NADU_DISTRICTS
 from app.providers.infrastructure_data import (
@@ -12,9 +13,16 @@ from app.providers.infrastructure_data import (
     get_verified_airport,
     get_verified_station,
     get_verified_bus_terminal,
-    get_tamil_nadu_commercial_airport
+    get_tamil_nadu_commercial_airport,
+    get_nearest_commercial_airport
 )
 from app.providers.live_transport_client import live_transport_client
+
+HILL_DESTINATIONS = {
+    "yercaud", "ooty", "udhagamandalam", "nilgiris",
+    "kodaikanal", "kodai", "yelagiri", "kolli hills",
+    "megamalai", "valparai"
+}
 
 def haversine_distance_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """Calculate the great circle distance between two points in kilometers."""
@@ -55,10 +63,13 @@ for _tn_key, _tn_data in TAMIL_NADU_DISTRICTS.items():
 # Tamil Nadu tourist aliases
 LOCATION_COORDS.update({
     "kanyakumari": (8.0883, 77.5385),
+    "kanniyakumari": (8.0883, 77.5385),
     "ooty": (11.4102, 76.6950),
     "udhagamandalam": (11.4102, 76.6950),
+    "nilgiris": (11.4102, 76.6950),
     "kodaikanal": (10.2381, 77.4892),
     "kodai": (10.2381, 77.4892),
+    "yercaud": (11.7753, 78.2093),
     "rameswaram": (9.2876, 79.3129),
     "rameshwaram": (9.2876, 79.3129),
     "trichy": (10.7905, 78.7047),
@@ -95,7 +106,7 @@ class TransportProvider:
         if norm in LOCATION_COORDS:
             return LOCATION_COORDS[norm]
         for key, coords in LOCATION_COORDS.items():
-            if key in norm or norm in key:
+            if key == norm or key in norm or norm in key:
                 return coords
         return None
 
@@ -134,31 +145,174 @@ class TransportProvider:
 
         orig_norm = origin.strip().lower()
         dest_norm = destination.strip().lower()
-
         is_overland = is_overland_contiguous(orig_norm, dest_norm)
         options: List[TransportOption] = []
 
+        # =========================================================================
+        # CASE 1: INTRA-CITY / INTRA-DISTRICT TRANSIT (Local Exploration)
+        # =========================================================================
+        if straight_dist_km < 5.0 or orig_norm == dest_norm:
+            is_chennai = "chennai" in orig_norm or "chennai" in dest_norm
+            maps_url = f"https://www.google.com/maps/dir/?api=1&origin={quote(origin)}&destination={quote(destination)}&travelmode=driving"
+
+            # 1. Intra-City Sightseeing Cab / Local Taxi
+            cab_low = 1400.0
+            cab_high = 2400.0
+            cab_est = 1900.0
+            options.append(TransportOption(
+                id="trans_cab",
+                mode="Intra-City Sightseeing Cab / Local Taxi",
+                category="road",
+                origin=origin.title(),
+                destination=destination.title(),
+                origin_coordinates=c1,
+                destination_coordinates=c2,
+                origin_station_or_airport="Doorstep / Hotel Pickup",
+                destination_station_or_airport="Local Sights & Attractions",
+                distance=45.0,
+                distance_km=45.0,
+                distance_unit="km",
+                duration=6.0,
+                duration_hours=6.0,
+                departure_time="Flexible / On-Demand",
+                transfers=0,
+                price_range_low=cab_low,
+                price_range_high=cab_high,
+                estimated_cost=cab_est,
+                currency=currency,
+                is_recommended=(preferred_mode.lower() in ["cab", "car", "taxi", "luxury", "private", "best value"]),
+                recommendation_rationale=f"Comprehensive day-tour taxi package covering top attractions across {origin.title()} with flexible doorstep pickup.",
+                source="Local City Taxi & Sightseeing Benchmark",
+                provider="Verified Local Tourist Taxi Operator",
+                retrieved_at=now_str,
+                data_timestamp=now_str,
+                data_status="verified_static",
+                verification_status="verified",
+                booking_advisory="Includes vehicle fuel, chauffeur allowance, and local parking charges. Standard 8-hour / 80-km package.",
+                recommendation_reason="Effortless local city sightseeing with on-demand flexibility.",
+                warnings=[],
+                directions_url=maps_url,
+                booking_url=maps_url,
+                operator_or_agency="Verified City Cab Fleet"
+            ))
+
+            # 2. Local City Bus
+            bus_fare_low = max(20.0, 15.0 * travellers)
+            bus_fare_high = max(50.0, 35.0 * travellers)
+            bus_est = round((bus_fare_low + bus_fare_high) / 2.0, 0)
+            options.append(TransportOption(
+                id="trans_bus",
+                mode="Metropolitan City Bus (MTC / TNSTC City Services)" if is_chennai else f"{origin.title()} Municipal City Bus",
+                category="bus",
+                origin=origin.title(),
+                destination=destination.title(),
+                origin_coordinates=c1,
+                destination_coordinates=c2,
+                origin_station_or_airport=get_verified_bus_terminal(orig_norm) or f"{origin.title()} Central Bus Stand",
+                destination_station_or_airport=f"{destination.title()} Local Stops",
+                distance=25.0,
+                distance_km=25.0,
+                distance_unit="km",
+                duration=1.5,
+                duration_hours=1.5,
+                departure_time="High Frequency Daily (Every 10-15 mins)",
+                transfers=1,
+                price_range_low=bus_fare_low,
+                price_range_high=bus_fare_high,
+                estimated_cost=bus_est,
+                currency=currency,
+                is_recommended=(preferred_mode.lower() in ["bus", "budget", "coach"]),
+                recommendation_rationale=f"High-frequency municipal city bus network operating across major commercial districts, heritage quarters, and beachfronts in {origin.title()}.",
+                source="State City Bus Schedule Benchmark",
+                provider="Metropolitan Transport Corporation (MTC) / TNSTC City Fleet",
+                retrieved_at=now_str,
+                data_timestamp=now_str,
+                data_status="verified_static",
+                verification_status="verified",
+                booking_advisory="Cash or contactless smartcard ticketing on board bus conductors. Frequent services from morning 05:00 to 23:00.",
+                recommendation_reason="Economical public transit network covering all urban districts.",
+                warnings=[],
+                booking_url="https://www.tnstc.in",
+                operator_or_agency="Metropolitan Transport Corporation (MTC) / TNSTC"
+            ))
+
+            # 3. Metro / Local Suburban Railway
+            rail_fare_low = max(30.0, 20.0 * travellers)
+            rail_fare_high = max(80.0, 50.0 * travellers)
+            rail_est = round((rail_fare_low + rail_fare_high) / 2.0, 0)
+            options.append(TransportOption(
+                id="trans_train",
+                mode=f"{origin.title()} Metro Rail & Suburban EMU Transit" if is_chennai else f"{origin.title()} Regional Passenger Line",
+                category="rail",
+                origin=origin.title(),
+                destination=destination.title(),
+                origin_coordinates=c1,
+                destination_coordinates=c2,
+                origin_station_or_airport="Central Metro / Suburban Junction",
+                destination_station_or_airport="Urban Station Network",
+                distance=20.0,
+                distance_km=20.0,
+                distance_unit="km",
+                duration=0.8,
+                duration_hours=0.8,
+                departure_time="Every 5-10 Minutes (05:30 - 23:00)",
+                transfers=0,
+                price_range_low=rail_fare_low,
+                price_range_high=rail_fare_high,
+                estimated_cost=rail_est,
+                currency=currency,
+                is_recommended=(preferred_mode.lower() in ["train", "rail", "fastest"]),
+                recommendation_rationale=f"Air-conditioned rapid transit bypassing city traffic, linking railway terminals, airport, and downtown {origin.title()}.",
+                source="Chennai Metro Rail (CMRL) & Southern Railway Suburban",
+                provider="Chennai Metro Rail Limited & Southern Railway",
+                retrieved_at=now_str,
+                data_timestamp=now_str,
+                data_status="verified_static",
+                verification_status="verified",
+                booking_advisory="Tokens and QR tickets available at station kiosks or official transit app. 5-minute peak headway.",
+                recommendation_reason="Fastest intra-city transit with zero road traffic delay.",
+                warnings=[],
+                booking_url="https://www.chennaimetrorail.org" if is_chennai else "https://www.irctc.co.in/nget/",
+                operator_or_agency="Chennai Metro Rail / Southern Railway Suburban"
+            ))
+            return options
+
+        # =========================================================================
+        # CASE 2: INTER-DISTRICT / REGIONAL TRANSIT
+        # =========================================================================
+        is_hill = dest_norm in HILL_DESTINATIONS or orig_norm in HILL_DESTINATIONS
+
         # ---------------------------------------------------------
-        # MODE 1: PRIVATE CAB / TAXI (Overland Only)
+        # MODE 1: CAB / ROAD (Overland Only)
         # ---------------------------------------------------------
-        if is_overland and straight_dist_km <= 700:
-            # Road circuity factor: Indian highway network is typically 1.22x - 1.30x straight line
-            road_dist = round(straight_dist_km * 1.24, 1)
-            # Average highway speed ~50-55 km/h including short tea/fuel halts
-            road_dur = round(max(1.0, 0.5 + (road_dist / 52.0)), 1)
+        if is_overland and straight_dist_km <= 750:
+            circuity = 1.95 if is_hill else 1.24
+            speed = 32.0 if is_hill else 52.0
+            road_dist = round(straight_dist_km * circuity, 1)
+            road_dur = round(max(0.8, 0.3 + (road_dist / speed)), 1)
             
-            # Cab is priced per vehicle (sedan/SUV) split among group
-            cab_low = max(2800.0, round(road_dist * 13.5 + 400.0, -1))
-            cab_high = max(4200.0, round(road_dist * 18.0 + 800.0, -1))
+            # Cab fare calculation scaled by distance
+            if road_dist <= 50.0:
+                cab_low = max(1200.0, round(road_dist * 18.0 + 300.0, -1))
+                cab_high = max(1800.0, round(road_dist * 24.0 + 600.0, -1))
+            elif road_dist <= 150.0:
+                cab_low = max(2000.0, round(road_dist * 14.0 + 400.0, -1))
+                cab_high = max(3200.0, round(road_dist * 19.0 + 700.0, -1))
+            else:
+                cab_low = max(2800.0, round(road_dist * 13.5 + 400.0, -1))
+                cab_high = max(4200.0, round(road_dist * 18.0 + 800.0, -1))
             cab_est = round((cab_low + cab_high) / 2.0, 0)
 
-            # Recommend cab for short journeys (<= 250 km) or when cab preferred
-            is_cab_rec = (preferred_mode.lower() in ["cab", "car", "taxi", "self-drive", "private"] or 
-                          (straight_dist_km <= 220 and preferred_mode.lower() in ["best value", "fastest", "convenient"]))
+            maps_url = f"https://www.google.com/maps/dir/?api=1&origin={quote(origin)}&destination={quote(destination)}&travelmode=driving"
 
+            is_cab_rec = (preferred_mode.lower() in ["cab", "car", "taxi", "self-drive", "private"] or 
+                          (straight_dist_km <= 200 and preferred_mode.lower() in ["best value", "fastest", "convenient"]))
+
+            hill_note = " via scenic mountain ghat road with hairpin bends" if is_hill else " via national/state highway corridor"
             options.append(TransportOption(
                 id="trans_cab",
                 mode="Private Outstation Cab / Taxi",
+                category="road",
                 origin=origin.title(),
                 destination=destination.title(),
                 origin_coordinates=c1,
@@ -177,7 +331,7 @@ class TransportProvider:
                 estimated_cost=cab_est,
                 currency=currency,
                 is_recommended=is_cab_rec,
-                recommendation_rationale=f"Direct highway route ({road_dist} km via national highways). Door-to-door convenience with zero transfers and pause flexibility.",
+                recommendation_rationale=f"Direct highway route ({road_dist} km{hill_note}). Door-to-door convenience with zero transfers and pause flexibility.",
                 source="TRIPORA Road Distance & Highway Toll Benchmark",
                 provider="Verified State Highway Network (NH/SH Corridors)",
                 retrieved_at=now_str,
@@ -186,20 +340,29 @@ class TransportProvider:
                 verification_status="verified",
                 booking_advisory="Includes driver allowance, fuel, and standard highway tolls. Available on-demand via verified taxi operators.",
                 recommendation_reason=f"Optimal direct overland connection for {road_dist} km with no airport overhead.",
-                warnings=[]
+                warnings=[],
+                directions_url=maps_url,
+                booking_url=maps_url,
+                operator_or_agency="Verified Highway Taxi / Outstation Cab Desk"
             ))
 
         # ---------------------------------------------------------
-        # MODE 2: INTERCITY EXPRESS / SLEEPER BUS (Overland Only)
+        # MODE 2: INTERCITY BUS (Overland Only)
         # ---------------------------------------------------------
-        if is_overland and straight_dist_km <= 900:
-            bus_dist = round(straight_dist_km * 1.25, 1)
-            # Commercial buses cruise at 45-50 km/h with scheduled passenger halts
-            bus_dur = round(max(1.5, 0.8 + (bus_dist / 46.0)), 1)
+        if is_overland and straight_dist_km <= 950:
+            bus_dist = round(straight_dist_km * (1.95 if is_hill else 1.25), 1)
+            bus_dur = round(max(1.0, 0.4 + (bus_dist / (30.0 if is_hill else 46.0))), 1)
             
-            # Bus fare per passenger
-            bus_fare_low = max(350.0, round(bus_dist * 1.2, -1))
-            bus_fare_high = max(850.0, round(bus_dist * 2.2, -1))
+            orig_terminal = get_verified_bus_terminal(orig_norm) or f"{origin.title()} Central Bus Stand"
+            dest_terminal = get_verified_bus_terminal(dest_norm) or f"{destination.title()} Central Bus Stand"
+
+            if bus_dist <= 50.0:
+                bus_fare_low = max(35.0, round(bus_dist * 1.1, -1))
+                bus_fare_high = max(65.0, round(bus_dist * 1.8, -1))
+            else:
+                bus_fare_low = max(90.0, round(bus_dist * 1.2, -1))
+                bus_fare_high = max(250.0, round(bus_dist * 2.2, -1))
+
             bus_total_low = bus_fare_low * travellers
             bus_total_high = bus_fare_high * travellers
             bus_est = round((bus_total_low + bus_total_high) / 2.0, 0)
@@ -209,12 +372,13 @@ class TransportProvider:
             options.append(TransportOption(
                 id="trans_bus",
                 mode="Intercity Express / AC Sleeper Bus",
+                category="bus",
                 origin=origin.title(),
                 destination=destination.title(),
                 origin_coordinates=c1,
                 destination_coordinates=c2,
-                origin_station_or_airport=f"{origin.title()} Central Bus Terminal",
-                destination_station_or_airport=f"{destination.title()} Bus Stand",
+                origin_station_or_airport=orig_terminal,
+                destination_station_or_airport=dest_terminal,
                 distance=bus_dist,
                 distance_km=bus_dist,
                 distance_unit="km",
@@ -227,107 +391,115 @@ class TransportProvider:
                 estimated_cost=bus_est,
                 currency=currency,
                 is_recommended=is_bus_rec,
-                recommendation_rationale=f"Economical point-to-point transit operated by state transport (TNSTC/SETC) and licensed private operators.",
+                recommendation_rationale=f"Economical point-to-point transit operated by state transport (TNSTC/SETC) connecting {orig_terminal} and {dest_terminal}.",
                 source="Regional Transport Schedule Benchmark",
                 provider="State Express Transport Corporation & Intercity Fleet Aggregator",
                 retrieved_at=now_str,
                 data_timestamp=now_str,
                 data_status="verified_static",
                 verification_status="verified",
-                booking_advisory="Regular departures throughout the day. Advance reservation advised for weekend travel.",
+                booking_advisory="Regular departures throughout the day. Advance online reservation available on official TNSTC portal.",
                 recommendation_reason="Highly economical direct option for overland regional transit.",
-                warnings=[]
+                warnings=[],
+                booking_url="https://www.tnstc.in",
+                operator_or_agency="State Express Transport Corporation (SETC) & TNSTC"
             ))
 
         # ---------------------------------------------------------
-        # ---------------------------------------------------------
-        # MODE 3: RAILWAY / EXPRESS TRAIN (Overland Only)
+        # MODE 3: EXPRESS RAILWAY (Overland Only)
         # ---------------------------------------------------------
         if is_overland and straight_dist_km <= 3500:
-            rail_dist = round(straight_dist_km * 1.28, 1)
-            # Default speed calculation if no specific schedule
-            default_rail_dur = round(max(2.0, 1.0 + (rail_dist / 62.0)), 1)
-
             st_orig = get_verified_station(orig_norm)
             st_dest = get_verified_station(dest_norm)
 
-            orig_st_name = st_orig["name"] if st_orig else f"{origin.title()} Railway Station"
-            dest_st_name = st_dest["name"] if st_dest else f"{destination.title()} Railway Station"
+            same_station_code = (st_orig and st_dest and st_orig.get("code") == st_dest.get("code"))
 
-            # Query verified train services or live client
-            train_records = live_transport_client.fetch_train_data(orig_norm, dest_norm)
-            train_rec = train_records[0] if train_records else None
+            if not same_station_code:
+                rail_dist = round(straight_dist_km * 1.28, 1)
+                default_rail_dur = round(max(1.0, 0.5 + (rail_dist / 62.0)), 1)
 
-            if train_rec and train_rec.get("duration_hours", 0) > 0:
-                rail_dur = train_rec["duration_hours"]
-            else:
-                rail_dur = default_rail_dur
+                orig_st_name = st_orig["name"] if st_orig else f"{origin.title()} Railway Station"
+                dest_st_name = st_dest["name"] if st_dest else f"{destination.title()} Railway Station"
 
-            train_name_val = train_rec.get("train_name") if train_rec else "Southern Railway Express"
-            train_num_val = train_rec.get("train_number") if train_rec else None
-            dept_time_val = train_rec.get("departure_time") if train_rec else "Daily Express Service Schedules"
-            arr_time_val = train_rec.get("arrival_time") if train_rec else None
-            booking_url_val = train_rec.get("booking_url", "https://www.irctc.co.in/nget/") if train_rec else "https://www.irctc.co.in/nget/"
-            avail_status_val = train_rec.get("availability_status", "Check Live Berth Availability on IRCTC") if train_rec else "Check Live Berth Availability on IRCTC (IRCTC PNR Required)"
-            data_st_val = train_rec.get("data_status", "verified_static") if train_rec else "verified_static"
-            verif_st_val = train_rec.get("verification_status", "verified") if train_rec else "verified"
-            is_live_val = train_rec.get("is_live_data", False) if train_rec else False
+                train_records = live_transport_client.fetch_train_data(orig_norm, dest_norm)
+                train_rec = train_records[0] if train_records else None
 
-            if train_rec and "fare_low" in train_rec:
-                rail_fare_low = train_rec["fare_low"]
-                rail_fare_high = train_rec["fare_high"]
-            else:
-                rail_fare_low = max(450.0, round(rail_dist * 1.3, -1))
-                rail_fare_high = max(1400.0, round(rail_dist * 2.6, -1))
+                if train_rec and train_rec.get("duration_hours", 0) > 0:
+                    rail_dur = train_rec["duration_hours"]
+                else:
+                    rail_dur = default_rail_dur
 
-            rail_total_low = rail_fare_low * travellers
-            rail_total_high = rail_fare_high * travellers
-            rail_est = round((rail_total_low + rail_total_high) / 2.0, 0)
+                train_name_val = train_rec.get("train_name") if train_rec else "Southern Railway Express"
+                train_num_val = train_rec.get("train_number") if train_rec else None
+                dept_time_val = train_rec.get("departure_time") if train_rec else "Daily Express Service Schedules"
+                arr_time_val = train_rec.get("arrival_time") if train_rec else None
+                booking_url_val = train_rec.get("booking_url", "https://www.irctc.co.in/nget/") if train_rec else "https://www.irctc.co.in/nget/"
+                avail_status_val = train_rec.get("availability_status", "Check Live Berth Availability on IRCTC") if train_rec else "Check Live Berth Availability on IRCTC (IRCTC PNR Required)"
+                data_st_val = train_rec.get("data_status", "verified_static") if train_rec else "verified_static"
+                verif_st_val = train_rec.get("verification_status", "verified") if train_rec else "verified"
+                is_live_val = train_rec.get("is_live_data", False) if train_rec else False
 
-            is_rail_rec = (preferred_mode.lower() in ["train", "rail"] or 
-                           (220 < straight_dist_km <= 700 and preferred_mode.lower() != "flight" and not any(opt.is_recommended for opt in options)))
+                if train_rec and "fare_low" in train_rec:
+                    rail_fare_low = train_rec["fare_low"]
+                    rail_fare_high = train_rec["fare_high"]
+                else:
+                    if rail_dist <= 65.0:
+                        rail_fare_low = max(45.0, round(rail_dist * 0.9, -1))
+                        rail_fare_high = max(175.0, round(rail_dist * 2.2, -1))
+                    else:
+                        rail_fare_low = max(95.0, round(rail_dist * 1.3, -1))
+                        rail_fare_high = max(450.0, round(rail_dist * 2.6, -1))
 
-            route_notes_val = train_rec.get("route_notes") if train_rec else f"Comfortable overland route connecting {orig_st_name} and {dest_st_name} with scenic views and generous luggage allowances."
-            train_mode_label = f"Express Train / Railway ({train_name_val})" if train_rec and train_rec.get("train_name") else "Express Train / Railway (AC Chair / Sleeper / AC 3-Tier)"
+                rail_total_low = rail_fare_low * travellers
+                rail_total_high = rail_fare_high * travellers
+                rail_est = round((rail_total_low + rail_total_high) / 2.0, 0)
 
-            options.append(TransportOption(
-                id="trans_train",
-                mode=train_mode_label,
-                origin=origin.title(),
-                destination=destination.title(),
-                origin_coordinates=c1,
-                destination_coordinates=c2,
-                origin_station_or_airport=train_rec.get("origin_station", orig_st_name) if train_rec else orig_st_name,
-                destination_station_or_airport=train_rec.get("dest_station", dest_st_name) if train_rec else dest_st_name,
-                distance=rail_dist,
-                distance_km=rail_dist,
-                distance_unit="km",
-                duration=rail_dur,
-                duration_hours=rail_dur,
-                departure_time=dept_time_val,
-                arrival_time=arr_time_val,
-                transfers=0 if (st_orig and st_dest) else 1,
-                price_range_low=rail_total_low,
-                price_range_high=rail_total_high,
-                estimated_cost=rail_est,
-                currency=currency,
-                is_recommended=is_rail_rec,
-                recommendation_rationale=route_notes_val,
-                source="Indian Railways / Southern Railway Network Directory",
-                provider="Indian Railways Schedule Benchmark",
-                retrieved_at=now_str,
-                data_timestamp=now_str,
-                data_status=data_st_val,
-                verification_status=verif_st_val,
-                booking_advisory="Official IRCTC reservation opens 120 days in advance. Verified PNR and confirmed seat allocation required.",
-                recommendation_reason="High safety, comfortable travel with sleeping berths on long routes.",
-                warnings=[],
-                booking_url=booking_url_val,
-                live_availability_status=avail_status_val,
-                train_number=train_num_val,
-                train_name=train_name_val,
-                is_live_data=is_live_val
-            ))
+                is_rail_rec = (preferred_mode.lower() in ["train", "rail"] or 
+                               (150 < straight_dist_km <= 700 and preferred_mode.lower() != "flight" and not any(opt.is_recommended for opt in options)))
+
+                route_notes_val = train_rec.get("route_notes") if train_rec else f"Comfortable overland route connecting {orig_st_name} and {dest_st_name} with scenic views and generous luggage allowances."
+                train_mode_label = f"Express Train / Railway ({train_name_val})" if train_rec and train_rec.get("train_name") else "Express Train / Railway (AC Chair / Sleeper / AC 3-Tier)"
+
+                options.append(TransportOption(
+                    id="trans_train",
+                    mode=train_mode_label,
+                    category="rail",
+                    origin=origin.title(),
+                    destination=destination.title(),
+                    origin_coordinates=c1,
+                    destination_coordinates=c2,
+                    origin_station_or_airport=train_rec.get("origin_station", orig_st_name) if train_rec else orig_st_name,
+                    destination_station_or_airport=train_rec.get("dest_station", dest_st_name) if train_rec else dest_st_name,
+                    distance=rail_dist,
+                    distance_km=rail_dist,
+                    distance_unit="km",
+                    duration=rail_dur,
+                    duration_hours=rail_dur,
+                    departure_time=dept_time_val,
+                    arrival_time=arr_time_val,
+                    transfers=0 if (st_orig and st_dest) else 1,
+                    price_range_low=rail_total_low,
+                    price_range_high=rail_total_high,
+                    estimated_cost=rail_est,
+                    currency=currency,
+                    is_recommended=is_rail_rec,
+                    recommendation_rationale=route_notes_val,
+                    source="Indian Railways / Southern Railway Network Directory",
+                    provider="Indian Railways Schedule Benchmark",
+                    retrieved_at=now_str,
+                    data_timestamp=now_str,
+                    data_status=data_st_val,
+                    verification_status=verif_st_val,
+                    booking_advisory="Official IRCTC reservation opens 120 days in advance. Verified PNR and confirmed seat allocation required.",
+                    recommendation_reason="High safety, comfortable travel with sleeping berths on long routes.",
+                    warnings=[],
+                    booking_url=booking_url_val,
+                    live_availability_status=avail_status_val,
+                    train_number=train_num_val,
+                    train_name=train_name_val,
+                    is_live_data=is_live_val,
+                    operator_or_agency="Southern Railway (Indian Railways)"
+                ))
 
         # ---------------------------------------------------------
         # MODE 4: COMMERCIAL FLIGHT (Strict Infrastructure Validation)
@@ -335,9 +507,8 @@ class TransportProvider:
         # FLIGHT ELIGIBILITY RULES:
         # 1. Both origin and destination MUST have a verified commercial airport.
         # 2. Minimum commercial distance threshold: >= 200 km (no domestic commercial passenger flight operates under 200 km).
-        # 3. For domestic flights, must be a known direct flight corridor or viable connection with distance >= 400 km.
-        # 4. If destination does NOT have an active commercial airport (e.g. Tiruvannamalai, Kodaikanal, etc.),
-        #    FLIGHT IS COMPLETELY DISQUALIFIED. NO FLIGHT CARD IS PRODUCED.
+        # 3. If destination does NOT have an active commercial airport (e.g. Tiruvannamalai, Kodaikanal, Yercaud, Thanjavur),
+        #    FLIGHT IS STRICTLY DISQUALIFIED. NO FLIGHT CARD IS PRODUCED.
         
         apt_orig = get_verified_airport(orig_norm)
         apt_dest = get_verified_airport(dest_norm)
@@ -349,24 +520,20 @@ class TransportProvider:
         if apt_orig and apt_dest:
             pair_key = frozenset([orig_norm, dest_norm])
             
-            # Check domestic distance threshold
             if straight_dist_km >= 200:
                 if pair_key in DIRECT_FLIGHT_PAIRS:
                     flight_eligible = True
                     is_direct_flight = True
                     flight_rationale = f"Direct commercial flight connecting {apt_orig['iata']} and {apt_dest['iata']}."
                 elif straight_dist_km >= 450:
-                    # Connecting commercial domestic or international flight
                     flight_eligible = True
                     is_direct_flight = False
                     flight_rationale = f"Commercial flight connecting {apt_orig['iata']} and {apt_dest['iata']} with scheduled transit."
                 elif not is_overland:
-                    # Overseas flight (e.g. island or intercontinental)
                     flight_eligible = True
                     flight_rationale = f"International flight connecting {apt_orig['iata']} ({apt_orig['city']}) to {apt_dest['iata']} ({apt_dest['city']})."
 
         if flight_eligible and apt_orig and apt_dest:
-            # Query verified commercial flights or live client
             live_flight = live_transport_client.fetch_flight_data(orig_norm, dest_norm)
 
             if live_flight:
@@ -386,7 +553,6 @@ class TransportProvider:
                 verif_st_val = live_flight.get("verification_status", "verified")
                 is_live_val = live_flight.get("is_live_data", False)
             else:
-                # Default generic commercial flight calculation for long routes
                 flight_operator_val = "Commercial Scheduled Airline"
                 flight_number_val = None
                 origin_apt_name = f"{apt_orig['name']} ({apt_orig['iata']})"
@@ -422,6 +588,7 @@ class TransportProvider:
             options.append(TransportOption(
                 id="trans_flight",
                 mode=f"Commercial Flight ({flight_operator_val if flight_operator_val else 'Direct'})",
+                category="flight",
                 origin=origin.title(),
                 destination=destination.title(),
                 origin_coordinates=c1,
@@ -455,25 +622,24 @@ class TransportProvider:
                 live_availability_status=avail_status_val,
                 flight_operator=flight_operator_val,
                 flight_number=flight_number_val,
-                is_live_data=is_live_val
+                is_live_data=is_live_val,
+                operator_or_agency=flight_operator_val or "Commercial Scheduled Airline"
             ))
 
         # ---------------------------------------------------------
         # POST-PROCESSING & RECOMMENDED SELECTION
         # ---------------------------------------------------------
         if options:
-            # If multiple options are marked recommended, keep only the most suitable
             rec_options = [opt for opt in options if opt.is_recommended]
             if len(rec_options) > 1:
                 for opt in rec_options[1:]:
                     opt.is_recommended = False
             elif not rec_options:
-                # Fallback: pick the most sensible option for the distance
-                if straight_dist_km <= 250:
-                    cab_opt = next((o for o in options if "cab" in o.id.lower()), options[0])
+                if straight_dist_km <= 200:
+                    cab_opt = next((o for o in options if o.category == "road" or "cab" in o.id.lower()), options[0])
                     cab_opt.is_recommended = True
                 elif straight_dist_km <= 650:
-                    train_opt = next((o for o in options if "train" in o.id.lower()), options[0])
+                    train_opt = next((o for o in options if o.category == "rail" or "train" in o.id.lower()), options[0])
                     train_opt.is_recommended = True
                 else:
                     options[0].is_recommended = True

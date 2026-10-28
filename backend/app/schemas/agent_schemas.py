@@ -48,6 +48,7 @@ class BudgetBreakdown(BaseModel):
 class TransportOption(BaseModel):
     id: str
     mode: str  # "Flight", "Train", "Bus", "Private Cab", "Self-Drive"
+    category: str = "road"  # "road" | "rail" | "bus" | "flight"
     origin: str
     destination: str
     distance_km: float
@@ -61,6 +62,8 @@ class TransportOption(BaseModel):
     source: str
     data_timestamp: str
     booking_advisory: str
+    directions_url: Optional[str] = None
+    operator_or_agency: Optional[str] = None
 
     # Extended route validation and structured transit fields
     origin_coordinates: Optional[tuple[float, float]] = None

@@ -292,6 +292,11 @@ VERIFIED_STATIONS: Dict[str, Dict[str, Any]] = {
         "name": "Chengalpattu Junction (CGL) [28 km Road Link to Shore Temple]",
         "hub_type": "Railhead with Direct Highway Link"
     },
+    "mamallapuram": {
+        "code": "CGL",
+        "name": "Chengalpattu Junction (CGL) [28 km Road Link to Shore Temple]",
+        "hub_type": "Railhead with Direct Highway Link"
+    },
     # 3. Chennai
     "chennai": {
         "code": "MAS / MS",
@@ -315,6 +320,11 @@ VERIFIED_STATIONS: Dict[str, Dict[str, Any]] = {
         "code": "DPJ",
         "name": "Dharmapuri Railway Station (DPJ)",
         "hub_type": "Bengaluru-Salem Line Station"
+    },
+    "hogenakkal": {
+        "code": "DPJ",
+        "name": "Dharmapuri Railway Station (DPJ) [46 km Link to Hogenakkal Falls]",
+        "hub_type": "Waterfalls Railhead Transfer"
     },
     # 7. Dindigul
     "dindigul": {
@@ -350,8 +360,18 @@ VERIFIED_STATIONS: Dict[str, Dict[str, Any]] = {
         "name": "Kanchipuram Railway Station (CJ)",
         "hub_type": "Arakkonam-Chengalpattu Branch Line"
     },
+    "kancheepuram": {
+        "code": "CJ",
+        "name": "Kanchipuram Railway Station (CJ)",
+        "hub_type": "Arakkonam-Chengalpattu Branch Line"
+    },
     # 11. Kanyakumari
     "kanyakumari": {
+        "code": "CAPE / NCJ",
+        "name": "Kanyakumari Terminus (CAPE) & Nagercoil Junction (NCJ)",
+        "hub_type": "Southernmost National Railway Terminus"
+    },
+    "kanniyakumari": {
         "code": "CAPE / NCJ",
         "name": "Kanyakumari Terminus (CAPE) & Nagercoil Junction (NCJ)",
         "hub_type": "Southernmost National Railway Terminus"
@@ -381,6 +401,11 @@ VERIFIED_STATIONS: Dict[str, Dict[str, Any]] = {
         "hub_type": "Kaveri Delta Mainline Junction"
     },
     "tranquebar": {
+        "code": "MV",
+        "name": "Mayiladuthurai Junction (MV) [Danish Fort Link]",
+        "hub_type": "Railhead with Coastal Road Transfer"
+    },
+    "tharangambadi": {
         "code": "MV",
         "name": "Mayiladuthurai Junction (MV) [Danish Fort Link]",
         "hub_type": "Railhead with Coastal Road Transfer"
@@ -480,8 +505,18 @@ VERIFIED_STATIONS: Dict[str, Dict[str, Any]] = {
         "name": "Tenkasi Junction (TSI) [6 km Link to Courtallam Waterfalls]",
         "hub_type": "Waterfalls Gateway Junction"
     },
+    "kutralam": {
+        "code": "TSI",
+        "name": "Tenkasi Junction (TSI) [6 km Link to Courtallam Waterfalls]",
+        "hub_type": "Waterfalls Gateway Junction"
+    },
     # 26. Thanjavur
     "thanjavur": {
+        "code": "TJ",
+        "name": "Thanjavur Junction (TJ)",
+        "hub_type": "Great Living Chola Mainline Station"
+    },
+    "tanjore": {
         "code": "TJ",
         "name": "Thanjavur Junction (TJ)",
         "hub_type": "Great Living Chola Mainline Station"
@@ -499,6 +534,11 @@ VERIFIED_STATIONS: Dict[str, Dict[str, Any]] = {
     },
     # 28. Thoothukudi
     "thoothukudi": {
+        "code": "TN / MEJ",
+        "name": "Tuticorin Terminus (TN) & Vanchi Maniyachchi (MEJ)",
+        "hub_type": "Port City Railway Terminus"
+    },
+    "tuticorin": {
         "code": "TN / MEJ",
         "name": "Tuticorin Terminus (TN) & Vanchi Maniyachchi (MEJ)",
         "hub_type": "Port City Railway Terminus"
@@ -671,21 +711,28 @@ VERIFIED_BUS_TERMINALS: Dict[str, str] = {
     "erode": "Erode Central Bus Stand",
     "tiruppur": "Tiruppur New Bus Stand (Pushpa Theatre)",
     "kanchipuram": "Kanchipuram Central Bus Stand",
+    "kancheepuram": "Kanchipuram Central Bus Stand",
     "chengalpattu": "Chengalpattu New Bus Stand",
     "mahabalipuram": "Mahabalipuram ECR Coastal Bus Stand",
+    "mamallapuram": "Mahabalipuram ECR Coastal Bus Stand",
     "vellore": "Vellore New Central Bus Stand (Chelliamman Koil)",
     "ranipet": "Ranipet & Walajah Bus Stand",
     "tirupathur": "Tirupathur Central Bus Stand",
     "yelagiri": "Yelagiri Athanavur Hill Bus Terminal",
     "dharmapuri": "Dharmapuri Central Bus Stand",
+    "hogenakkal": "Hogenakkal Falls Bus Stand & Dharmapuri Central",
     "krishnagiri": "Krishnagiri Central Bus Stand",
     "namakkal": "Namakkal Central Bus Stand",
+    "kolli hills": "Semmedu Kolli Hills Bus Stand",
     "karur": "Karur Central Bus Stand",
     "pudukkottai": "Pudukkottai Central Bus Stand",
+    "sivaganga": "Sivagangai & Karaikkudi New Bus Stand",
     "sivagangai": "Sivagangai & Karaikkudi New Bus Stand",
     "chettinad": "Karaikkudi New Bus Stand & Kanadukathan Stop",
     "theni": "Theni Central Bus Stand",
+    "megamalai": "Megamalai Highwavys Bus Stand & Theni Central",
     "thoothukudi": "Thoothukudi New Bus Stand",
+    "tuticorin": "Thoothukudi New Bus Stand",
     "cuddalore": "Cuddalore Central Bus Stand",
     "villupuram": "Villupuram Central Bus Stand",
     "viluppuram": "Villupuram Central Bus Stand",
@@ -694,12 +741,19 @@ VERIFIED_BUS_TERMINALS: Dict[str, str] = {
     "nagapattinam": "Nagapattinam Central Bus Stand",
     "velankanni": "Velankanni Basilica Express Bus Terminal",
     "mayiladuthurai": "Mayiladuthurai Central Bus Stand",
+    "tranquebar": "Tranquebar (Tharangambadi) Coastal Bus Stand",
+    "tharangambadi": "Tranquebar (Tharangambadi) Coastal Bus Stand",
     "tiruvarur": "Tiruvarur Central Bus Stand",
     "ariyalur": "Ariyalur Central Bus Stand",
     "perambalur": "Perambalur New Bus Stand",
     "tiruvallur": "Tiruvallur Central Bus Stand",
     "virudhunagar": "Virudhunagar Central Bus Stand",
     "srivilliputhur": "Srivilliputhur Town Bus Stand",
+    "kanniyakumari": "Kanyakumari Express Bus Terminus & Nagercoil Christopher Stand",
+    "tanjore": "Thanjavur New Central Bus Stand (Near Medical College)",
+    "yercaud": "Yercaud Hill Bus Stand (SH 188 Ghat Corridor)",
+    "courtallam": "Courtallam Main Falls Bus Terminal",
+    "kutralam": "Courtallam Main Falls Bus Terminal",
     "bangalore": "Kempegowda Bus Station (Majestic SBC) & Shantinagar",
     "bengaluru": "Kempegowda Bus Station (Majestic SBC)",
     "mumbai": "Mumbai Central MSRTC Bus Station",
@@ -902,6 +956,28 @@ def get_tamil_nadu_commercial_airport(query: str) -> Optional[Dict[str, Any]]:
     if "trichy" in q:
         return TAMIL_NADU_COMMERCIAL_AIRPORTS["TRZ"]
     return None
+
+def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    import math
+    R = 6371.0
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    a = (math.sin(dlat / 2) ** 2 +
+         math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2) ** 2)
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return round(R * c, 1)
+
+def get_nearest_commercial_airport(lat: float, lng: float) -> Tuple[Optional[Dict[str, Any]], float]:
+    """Calculate the closest certified commercial airport in Tamil Nadu and return airport info with highway road km."""
+    closest_apt = None
+    min_dist = float("inf")
+    for code, apt in TAMIL_NADU_COMMERCIAL_AIRPORTS.items():
+        d = haversine_km(lat, lng, apt["lat"], apt["lng"])
+        if d < min_dist:
+            min_dist = d
+            closest_apt = apt
+    road_km = round(min_dist * 1.25, 0)
+    return closest_apt, road_km
 
 # ==============================================================================
 # 6. VERIFIED TRAIN SERVICES (Indian Railways / Southern Railway Schedule Registry)
@@ -1174,6 +1250,240 @@ VERIFIED_TRAIN_SERVICES: Dict[Tuple[str, str], List[Dict[str, Any]]] = {
             "booking_url": "https://www.irctc.co.in/nget/",
             "availability_status": "Daily Superfast Sleeper & AC (Pearl City Corridor)",
             "route_notes": "Prestigious overnight connection between Chennai Egmore and Tuticorin port terminus."
+        }
+    ],
+    ("chennai", "vellore"): [
+        {
+            "train_number": "12639",
+            "train_name": "Brindavan Superfast Express",
+            "origin_station": "Puratchi Thalaivar Dr. M.G. Ramachandran Central (MAS)",
+            "dest_station": "Katpadi Junction (KPD) [Vellore]",
+            "departure_time": "07:40 Scheduled Daily",
+            "arrival_time": "09:30",
+            "duration_hours": 1.83,
+            "fare_low": 85.0,
+            "fare_high": 380.0,
+            "booking_url": "https://www.irctc.co.in/nget/",
+            "availability_status": "IRCTC Reservation Open (2S / AC Chair Car)",
+            "route_notes": "Premier intercity superfast linking Chennai Central and Katpadi/Vellore on the electrified quad-track corridor."
+        },
+        {
+            "train_number": "12607",
+            "train_name": "Lalbagh Superfast Express",
+            "origin_station": "Puratchi Thalaivar Dr. M.G. Ramachandran Central (MAS)",
+            "dest_station": "Katpadi Junction (KPD) [Vellore]",
+            "departure_time": "15:30 Scheduled Daily",
+            "arrival_time": "17:20",
+            "duration_hours": 1.83,
+            "fare_low": 85.0,
+            "fare_high": 380.0,
+            "booking_url": "https://www.irctc.co.in/nget/",
+            "availability_status": "Daily Afternoon Superfast (2S / AC Chair Car)",
+            "route_notes": "Afternoon superfast connecting Chennai Central with Katpadi Junction (Vellore)."
+        }
+    ],
+    ("chennai", "kancheepuram"): [
+        {
+            "train_number": "40701 / 06727",
+            "train_name": "Chennai Beach - Chengalpattu - Kanchipuram EMU / Passenger",
+            "origin_station": "Chennai Beach (MSB) / Chennai Egmore (MS)",
+            "dest_station": "Kanchipuram Railway Station (CJ)",
+            "departure_time": "07:15 / 17:45 Scheduled Daily",
+            "arrival_time": "09:20 / 19:50",
+            "duration_hours": 2.08,
+            "fare_low": 45.0,
+            "fare_high": 180.0,
+            "booking_url": "https://www.irctc.co.in/nget/",
+            "availability_status": "Regular Southern Railway Passenger / Suburban Transit",
+            "route_notes": "Broad gauge connection via Chengalpattu direct to Kanchipuram silk town terminus (CJ)."
+        }
+    ],
+    ("chennai", "kanchipuram"): [
+        {
+            "train_number": "40701 / 06727",
+            "train_name": "Chennai Beach - Chengalpattu - Kanchipuram EMU / Passenger",
+            "origin_station": "Chennai Beach (MSB) / Chennai Egmore (MS)",
+            "dest_station": "Kanchipuram Railway Station (CJ)",
+            "departure_time": "07:15 / 17:45 Scheduled Daily",
+            "arrival_time": "09:20 / 19:50",
+            "duration_hours": 2.08,
+            "fare_low": 45.0,
+            "fare_high": 180.0,
+            "booking_url": "https://www.irctc.co.in/nget/",
+            "availability_status": "Regular Southern Railway Passenger / Suburban Transit",
+            "route_notes": "Broad gauge connection via Chengalpattu direct to Kanchipuram silk town terminus (CJ)."
+        }
+    ],
+    ("chennai", "chengalpattu"): [
+        {
+            "train_number": "Suburban Fast / Express Line",
+            "train_name": "Chennai Egmore - Chengalpattu Express Line",
+            "origin_station": "Chennai Egmore (MS) / Chennai Beach (MSB)",
+            "dest_station": "Chengalpattu Junction (CGL)",
+            "departure_time": "High Frequency Departures (Every 20 mins)",
+            "arrival_time": "Frequent arrivals",
+            "duration_hours": 1.05,
+            "fare_low": 35.0,
+            "fare_high": 150.0,
+            "booking_url": "https://www.irctc.co.in/nget/",
+            "availability_status": "Frequent EMU & Southern Railway Express Halts",
+            "route_notes": "Direct mainline rail corridor along GST Road. All southbound express trains halt at Chengalpattu Junction (CGL)."
+        }
+    ],
+    ("chennai", "thanjavur"): [
+        {
+            "train_number": "16865",
+            "train_name": "Uzhavan Express",
+            "origin_station": "Chennai Egmore (MS)",
+            "dest_station": "Thanjavur Junction (TJ)",
+            "departure_time": "22:55 Scheduled Daily",
+            "arrival_time": "05:25",
+            "duration_hours": 6.5,
+            "fare_low": 240.0,
+            "fare_high": 1480.0,
+            "booking_url": "https://www.irctc.co.in/nget/",
+            "availability_status": "Daily Overnight Sleeper & AC Corridor",
+            "route_notes": "Mainline Chola delta route via Villupuram, Mayiladuthurai, and Kumbakonam to Thanjavur (TJ)."
+        },
+        {
+            "train_number": "22675",
+            "train_name": "Cholan Superfast Express",
+            "origin_station": "Chennai Egmore (MS)",
+            "dest_station": "Thanjavur Junction (TJ)",
+            "departure_time": "07:45 Scheduled Daily",
+            "arrival_time": "14:15",
+            "duration_hours": 6.5,
+            "fare_low": 240.0,
+            "fare_high": 1480.0,
+            "booking_url": "https://www.irctc.co.in/nget/",
+            "availability_status": "Daily Daytime Superfast (2S / AC Chair / Sleeper)",
+            "route_notes": "Scenic daytime superfast along the historic Great Living Chola Temples route to Thanjavur."
+        }
+    ],
+    ("chennai", "tanjore"): [
+        {
+            "train_number": "16865",
+            "train_name": "Uzhavan Express",
+            "origin_station": "Chennai Egmore (MS)",
+            "dest_station": "Thanjavur Junction (TJ)",
+            "departure_time": "22:55 Scheduled Daily",
+            "arrival_time": "05:25",
+            "duration_hours": 6.5,
+            "fare_low": 240.0,
+            "fare_high": 1480.0,
+            "booking_url": "https://www.irctc.co.in/nget/",
+            "availability_status": "Daily Overnight Sleeper & AC Corridor",
+            "route_notes": "Mainline Chola delta route to Thanjavur."
+        }
+    ],
+    ("chennai", "tirunelveli"): [
+        {
+            "train_number": "20665",
+            "train_name": "Tirunelveli Vande Bharat Express",
+            "origin_station": "Chennai Egmore (MS)",
+            "dest_station": "Tirunelveli Junction (TEN)",
+            "departure_time": "14:50 Scheduled",
+            "arrival_time": "22:40",
+            "duration_hours": 7.83,
+            "fare_low": 1655.0,
+            "fare_high": 3055.0,
+            "booking_url": "https://www.irctc.co.in/nget/",
+            "availability_status": "Vande Bharat Superfast (AC Chair Car & Executive)",
+            "route_notes": "Fastest high-speed rail corridor linking Chennai Egmore directly to Tirunelveli Junction via Madurai."
+        },
+        {
+            "train_number": "12631",
+            "train_name": "Nellai Superfast Express",
+            "origin_station": "Chennai Egmore (MS)",
+            "dest_station": "Tirunelveli Junction (TEN)",
+            "departure_time": "20:10 Scheduled Daily",
+            "arrival_time": "06:40",
+            "duration_hours": 10.5,
+            "fare_low": 445.0,
+            "fare_high": 1720.0,
+            "booking_url": "https://www.irctc.co.in/nget/",
+            "availability_status": "Daily Superfast Sleeper & AC (Nellai Corridor)",
+            "route_notes": "Flagship overnight superfast linking Chennai Egmore to Tirunelveli Junction."
+        }
+    ],
+    ("coimbatore", "ooty"): [
+        {
+            "train_number": "06136 / 06137",
+            "train_name": "Nilgiri Mountain Railway (Toy Train via MTP)",
+            "origin_station": "Coimbatore Junction (CBE) [via Mettupalayam MTP]",
+            "dest_station": "Udagamandalam Railway Station (Ooty UAM)",
+            "departure_time": "07:10 (MTP) Scheduled Daily",
+            "arrival_time": "12:00",
+            "duration_hours": 4.83,
+            "fare_low": 205.0,
+            "fare_high": 600.0,
+            "booking_url": "https://www.irctc.co.in/nget/",
+            "availability_status": "UNESCO World Heritage Mountain Rail (FC / 2S Reserved Berths)",
+            "route_notes": "Iconic rack-and-pinion steam/diesel heritage railway ascending through the Nilgiri hills from Mettupalayam (MTP) to Ooty (UAM). Broad gauge passenger connects CBE to MTP."
+        }
+    ],
+    ("coimbatore", "nilgiris"): [
+        {
+            "train_number": "06136 / 06137",
+            "train_name": "Nilgiri Mountain Railway (Toy Train via MTP)",
+            "origin_station": "Coimbatore Junction (CBE) [via Mettupalayam MTP]",
+            "dest_station": "Udagamandalam Railway Station (Ooty UAM)",
+            "departure_time": "07:10 (MTP) Scheduled Daily",
+            "arrival_time": "12:00",
+            "duration_hours": 4.83,
+            "fare_low": 205.0,
+            "fare_high": 600.0,
+            "booking_url": "https://www.irctc.co.in/nget/",
+            "availability_status": "UNESCO World Heritage Mountain Rail",
+            "route_notes": "UNESCO Nilgiri Mountain Railway ascending to Ooty UAM."
+        }
+    ],
+    ("madurai", "rameswaram"): [
+        {
+            "train_number": "06653 / 06655",
+            "train_name": "Madurai - Rameswaram Passenger / Express",
+            "origin_station": "Madurai Junction (MDU)",
+            "dest_station": "Rameswaram Railway Station (RMM)",
+            "departure_time": "06:30 / 12:30 / 18:00 Scheduled",
+            "arrival_time": "10:00 / 16:05 / 21:40",
+            "duration_hours": 3.5,
+            "fare_low": 85.0,
+            "fare_high": 350.0,
+            "booking_url": "https://www.irctc.co.in/nget/",
+            "availability_status": "Daily Express Service across Pamban Rail Corridor",
+            "route_notes": "Direct broad gauge connection traversing Ramanathapuram and the Pamban sea corridor to Rameswaram Island (RMM)."
+        }
+    ],
+    ("tiruchirappalli", "thanjavur"): [
+        {
+            "train_number": "16866 / 06872",
+            "train_name": "Uzhavan / Trichy - Mayiladuthurai Express",
+            "origin_station": "Tiruchirappalli Junction (TPJ)",
+            "dest_station": "Thanjavur Junction (TJ)",
+            "departure_time": "06:15 / 10:20 / 14:15 / 18:30 Daily",
+            "arrival_time": "07:05 / 11:10 / 15:05 / 19:20",
+            "duration_hours": 0.83,
+            "fare_low": 45.0,
+            "fare_high": 175.0,
+            "booking_url": "https://www.irctc.co.in/nget/",
+            "availability_status": "High-Frequency Daily Express (2S / AC Chair Car)",
+            "route_notes": "Fast delta line connection connecting Trichy Junction to Thanjavur Junction in ~45-50 minutes."
+        }
+    ],
+    ("trichy", "thanjavur"): [
+        {
+            "train_number": "16866 / 06872",
+            "train_name": "Uzhavan / Trichy - Mayiladuthurai Express",
+            "origin_station": "Tiruchirappalli Junction (TPJ)",
+            "dest_station": "Thanjavur Junction (TJ)",
+            "departure_time": "06:15 / 10:20 / 14:15 / 18:30 Daily",
+            "arrival_time": "07:05 / 11:10 / 15:05 / 19:20",
+            "duration_hours": 0.83,
+            "fare_low": 45.0,
+            "fare_high": 175.0,
+            "booking_url": "https://www.irctc.co.in/nget/",
+            "availability_status": "High-Frequency Daily Express (2S / AC Chair Car)",
+            "route_notes": "Fast delta line connection connecting Trichy Junction to Thanjavur Junction in ~45-50 minutes."
         }
     ]
 }

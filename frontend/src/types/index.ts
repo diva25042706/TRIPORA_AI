@@ -64,6 +64,7 @@ export interface BudgetBreakdown {
 export interface TransportOption {
   id: string;
   mode: string;
+  category?: 'road' | 'rail' | 'bus' | 'flight' | string;
   origin: string;
   destination: string;
   distance_km: number;
@@ -77,6 +78,8 @@ export interface TransportOption {
   source: string;
   data_timestamp: string;
   booking_advisory: string;
+  directions_url?: string | null;
+  operator_or_agency?: string | null;
 
   // Extended Section 6 structured fields
   origin_station_or_airport?: string | null;

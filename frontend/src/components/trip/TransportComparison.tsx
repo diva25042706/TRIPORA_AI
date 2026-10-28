@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TransportOption } from '../../types';
-import { Plane, Train, Bus, Car, CheckCircle2, Clock, MapPin, AlertCircle, Info, ShieldCheck, ArrowRightLeft, ExternalLink, Calendar, Ticket } from 'lucide-react';
+import { Plane, Train, Bus, Car, CheckCircle2, Clock, MapPin, AlertCircle, Info, ShieldCheck, ArrowRightLeft, ExternalLink, Calendar, Ticket, Compass } from 'lucide-react';
 
 interface TransportComparisonProps {
   transports: TransportOption[];
@@ -11,46 +11,53 @@ export const TransportComparison: React.FC<TransportComparisonProps> = ({ transp
   const [filterMode, setFilterMode] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'recommended' | 'duration' | 'price'>('recommended');
 
-  const isFlight = (mode: string) => {
-    const m = mode.toLowerCase();
+  const destinationName = transports[0]?.destination || 'Destination';
+  const originName = transports[0]?.origin || 'Origin';
+
+  const isFlight = (t: TransportOption) => {
+    if (t.category === 'flight') return true;
+    const m = (t.mode || '').toLowerCase();
     return m.includes('flight') || m.includes('airline') || m.includes('aviation') || m.includes('plane');
   };
 
-  const isTrain = (mode: string) => {
-    const m = mode.toLowerCase();
-    return m.includes('train') || m.includes('rail');
+  const isTrain = (t: TransportOption) => {
+    if (t.category === 'rail') return true;
+    const m = (t.mode || '').toLowerCase();
+    return m.includes('train') || m.includes('rail') || m.includes('metro');
   };
 
-  const isBus = (mode: string) => {
-    const m = mode.toLowerCase();
+  const isBus = (t: TransportOption) => {
+    if (t.category === 'bus') return true;
+    const m = (t.mode || '').toLowerCase();
     return m.includes('bus') || m.includes('coach');
   };
 
-  const isCab = (mode: string) => {
-    const m = mode.toLowerCase();
-    return m.includes('cab') || m.includes('car') || m.includes('taxi') || m.includes('self-drive');
+  const isCab = (t: TransportOption) => {
+    if (t.category === 'road') return true;
+    const m = (t.mode || '').toLowerCase();
+    return m.includes('cab') || m.includes('car') || m.includes('taxi') || m.includes('self-drive') || m.includes('road');
   };
 
-  const getModeIcon = (mode: string) => {
-    if (isFlight(mode)) return <Plane className="w-5 h-5 text-blue-600" />;
-    if (isTrain(mode)) return <Train className="w-5 h-5 text-emerald-600" />;
-    if (isBus(mode)) return <Bus className="w-5 h-5 text-amber-600" />;
+  const getModeIcon = (t: TransportOption) => {
+    if (isFlight(t)) return <Plane className="w-5 h-5 text-blue-600" />;
+    if (isTrain(t)) return <Train className="w-5 h-5 text-emerald-600" />;
+    if (isBus(t)) return <Bus className="w-5 h-5 text-amber-600" />;
     return <Car className="w-5 h-5 text-purple-600" />;
   };
 
   // Pre-calculate counts for each mode
-  const flightCount = transports.filter((t) => isFlight(t.mode)).length;
-  const trainCount = transports.filter((t) => isTrain(t.mode)).length;
-  const busCount = transports.filter((t) => isBus(t.mode)).length;
-  const cabCount = transports.filter((t) => isCab(t.mode)).length;
+  const flightCount = transports.filter(isFlight).length;
+  const trainCount = transports.filter(isTrain).length;
+  const busCount = transports.filter(isBus).length;
+  const cabCount = transports.filter(isCab).length;
 
   // Filter transports
   const filtered = transports.filter((t) => {
     if (filterMode === 'all') return true;
-    if (filterMode === 'flight') return isFlight(t.mode);
-    if (filterMode === 'train') return isTrain(t.mode);
-    if (filterMode === 'bus') return isBus(t.mode);
-    if (filterMode === 'cab') return isCab(t.mode);
+    if (filterMode === 'flight') return isFlight(t);
+    if (filterMode === 'train') return isTrain(t);
+    if (filterMode === 'bus') return isBus(t);
+    if (filterMode === 'cab') return isCab(t);
     return true;
   });
 
@@ -71,7 +78,7 @@ export const TransportComparison: React.FC<TransportComparisonProps> = ({ transp
         <Info className="w-5 h-5 text-[#059669] shrink-0 mt-0.5" />
         <div className="text-xs text-[#5A6D7C] leading-relaxed space-y-1 text-left">
           <p>
-            <strong className="text-[#0F1E28]">Route-Aware Multi-Modal Transit Engine:</strong> Transportation options are evaluated against verified geographic coordinates, active commercial airports, rail networks, and road corridors. Modes are disqualified if verified infrastructure does not exist for the journey.
+            <strong className="text-[#0F1E28]">District-Aware Multi-Modal Transit Engine:</strong> Transportation options are evaluated across all 38 Tamil Nadu districts against verified infrastructure—commercial airports, Southern Railway railheads, SETC/TNSTC bus terminals, and national/state highway road routes.
           </p>
         </div>
       </div>
@@ -83,7 +90,7 @@ export const TransportComparison: React.FC<TransportComparisonProps> = ({ transp
           <div className="space-y-0.5">
             <span className="font-bold text-amber-900">No Commercial Passenger Airport Serving Destination</span>
             <p className="text-[11px] text-amber-800 leading-relaxed">
-              Commercial scheduled flights are disqualified because the destination has no commercial airport (e.g. Tiruvannamalai). High-safety Southern Railway services, express buses, and national highway road transport are verified and recommended below.
+              Commercial scheduled passenger flights are disqualified because {destinationName} has no commercial passenger airport. In Tamil Nadu, scheduled passenger flights operate strictly via 6 certified airports (Chennai MAA, Coimbatore CJB, Madurai IXM, Tiruchirappalli TRZ, Salem SXV, Thoothukudi TCR). Southern Railway trains, SETC/TNSTC buses, and national highway road corridors are verified below.
             </p>
           </div>
         </div>
@@ -135,12 +142,16 @@ export const TransportComparison: React.FC<TransportComparisonProps> = ({ transp
           </div>
           <h4 className="text-sm font-bold text-[#0F1E28]">
             {filterMode === 'flight'
-              ? 'No Commercial Passenger Flights on this Route'
+              ? `No Commercial Passenger Flights to ${destinationName}`
+              : filterMode === 'train'
+              ? `No Direct Express Rail to ${destinationName}`
               : 'No verified options matching this filter'}
           </h4>
           <p className="text-xs text-[#5A6D7C] max-w-md mx-auto leading-relaxed">
             {filterMode === 'flight'
-              ? 'Only 6 certified commercial passenger airports operate in Tamil Nadu (Chennai MAA, Coimbatore CJB, Madurai IXM, Tiruchirappalli TRZ, Salem SXV, Thoothukudi TCR). Direct flights to destinations without commercial airports are strictly disqualified to prevent hallucinated bookings.'
+              ? `Only 6 certified commercial passenger airports operate in Tamil Nadu: Chennai (MAA), Coimbatore (CJB), Madurai (IXM), Tiruchirappalli (TRZ), Salem (SXV), and Thoothukudi (TCR). Direct flights to destinations without commercial airports (e.g. Tiruvannamalai, Kancheepuram, Vellore, Ooty, Yercaud, Thanjavur) are strictly disqualified to prevent hallucinated bookings.`
+              : filterMode === 'train'
+              ? `Direct express rail service does not terminate on hilltop terrain (e.g. Yercaud Shevaroy Hills). Nearby railway junctions (e.g. Salem Junction SA, 32 km downhill) connect via scenic ghat roads. Verified Outstation Cab and Intercity Bus provide direct, verified point-to-point transit.`
               : 'Try selecting "All Eligible" above to see the active transportation modes evaluated for this trip.'}
           </p>
           <button
@@ -168,7 +179,7 @@ export const TransportComparison: React.FC<TransportComparisonProps> = ({ transp
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-black/5 flex items-center justify-center shrink-0">
-                    {getModeIcon(t.mode)}
+                    {getModeIcon(t)}
                   </div>
                   <div>
                     <h4 className="text-base font-bold text-[#0F1E28]">{t.mode}</h4>
@@ -195,6 +206,16 @@ export const TransportComparison: React.FC<TransportComparisonProps> = ({ transp
                   )}
                 </div>
               </div>
+
+              {/* Operator Badge */}
+              {t.operator_or_agency && (
+                <div className="mb-2 text-[11px] text-[#475569] font-semibold flex items-center gap-1.5">
+                  <span className="text-[#8C9BA5]">Operator / Agency:</span>
+                  <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-800 text-[10px] font-bold border border-slate-200">
+                    {t.operator_or_agency}
+                  </span>
+                </div>
+              )}
 
               {/* Verified Service Specific Badges: Train Name/Number or Flight Operator */}
               {(t.train_number || t.train_name || t.flight_operator || t.flight_number) && (
@@ -286,21 +307,23 @@ export const TransportComparison: React.FC<TransportComparisonProps> = ({ transp
                 <strong className="text-[#0F1E28]">Agent Rationale:</strong> {t.recommendation_rationale}
               </p>
 
-              {/* Official Booking CTA button */}
-              {t.booking_url && (
+              {/* Official Booking / Directions CTA button */}
+              {(t.booking_url || t.directions_url) && (
                 <div className="mt-3">
                   <a
-                    href={t.booking_url}
+                    href={t.booking_url || t.directions_url || '#'}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center gap-1.5 w-full py-2 px-3 rounded-xl bg-[#143628] hover:bg-[#1E4D3B] text-white text-xs font-bold transition-all shadow-sm group"
                   >
                     <span>
-                      {isTrain(t.mode)
+                      {isTrain(t)
                         ? 'Book on Official IRCTC Portal'
-                        : isFlight(t.mode)
+                        : isFlight(t)
                         ? 'Book on Official Airline Portal'
-                        : 'Official Booking Platform'}
+                        : isBus(t)
+                        ? 'Book on Official TNSTC / SETC Portal'
+                        : 'Open Google Maps Driving Route'}
                     </span>
                     <ExternalLink className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                   </a>
@@ -325,4 +348,3 @@ export const TransportComparison: React.FC<TransportComparisonProps> = ({ transp
     </div>
   );
 };
-
